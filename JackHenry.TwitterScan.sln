@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33213.308
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JackHenry.TwitterScan.Common", "JackHenry.TwitterScan.Common\JackHenry.TwitterScan.Common.csproj", "{8A0E70E4-7283-4B8D-994D-B96A7D28CF88}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JackHenry.TwitterScan.Emitter", "JackHenry.TwitterScan.Emitter\JackHenry.TwitterScan.Emitter.csproj", "{5EABB9AE-115D-4194-8A06-3EBA58A0DD3B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JackHenry.TwitterScan.PocConsole", "JackHenry.TwitterScan.PocConsole\JackHenry.TwitterScan.PocConsole.csproj", "{07B2738E-56E2-4586-9208-5CF7DFF1BC7D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8A0E70E4-7283-4B8D-994D-B96A7D28CF88}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A0E70E4-7283-4B8D-994D-B96A7D28CF88}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A0E70E4-7283-4B8D-994D-B96A7D28CF88}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A0E70E4-7283-4B8D-994D-B96A7D28CF88}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5EABB9AE-115D-4194-8A06-3EBA58A0DD3B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5EABB9AE-115D-4194-8A06-3EBA58A0DD3B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5EABB9AE-115D-4194-8A06-3EBA58A0DD3B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5EABB9AE-115D-4194-8A06-3EBA58A0DD3B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{07B2738E-56E2-4586-9208-5CF7DFF1BC7D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{07B2738E-56E2-4586-9208-5CF7DFF1BC7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{07B2738E-56E2-4586-9208-5CF7DFF1BC7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{07B2738E-56E2-4586-9208-5CF7DFF1BC7D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D325E348-2899-4917-B090-12DE8262F522}
+	EndGlobalSection
+EndGlobal
