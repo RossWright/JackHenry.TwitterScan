@@ -1,17 +1,23 @@
 ﻿using JackHenry.TwitterScan;
+using Microsoft.Extensions.Configuration;
+using System.Net.Http.Headers;
 using System.Text.Json;
+
+var configuration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetParent(AppContext.BaseDirectory)!.FullName)
+            .AddJsonFile("appsettings.json", false)
+            .Build();
+var accessToken = configuration["TwitterAccessToken"];
 
 // Prompt user for tweet rate to be passed to the mock emitter
 int rate = 0;
 do
 {
-    // TODO: provide an option for chosing the live twitter feed
-
-    Console.Write("Tweets Per Second (default 5600): ");
+    Console.Write("Tweets Per Second (leave blank to use twitter): ");
     var input = Console.ReadLine();
     if (string.IsNullOrWhiteSpace(input))
     {
-        rate = 5600;
+        rate = -1;
     }
     else if (!int.TryParse(input, out rate) || rate < 1 || rate > 1500000)
     {
@@ -20,9 +26,9 @@ do
     }
 }while (rate == 0);
 
-// TODO: use the live twitter feed if it was selected above
-//var requestUri = "https://api.twitter.com/2/tweets/sample/stream?tweet.fields=entities";
-var requestUri = $"https://localhost:7260/stream?rate={rate}";
+var requestUri = rate == -1
+        ? "https://api.twitter.com/2/tweets/sample/stream?tweet.fields=entities"
+        : $"https://localhost:7260/stream?rate={rate}";
 
 // output the header and prepare variables for loop
 Console.WriteLine("Elapsed      Count        Rate");
@@ -42,6 +48,11 @@ using HttpClient httpClient = new HttpClient
 {
     Timeout = TimeSpan.FromMilliseconds(Timeout.Infinite)
 };
+if (accessToken != null)
+{
+    httpClient.DefaultRequestHeaders.Authorization =
+        new AuthenticationHeaderValue("Bearer", accessToken);
+}
 using var stream = await httpClient.GetStreamAsync(requestUri);
 using var reader = new StreamReader(stream);
 
