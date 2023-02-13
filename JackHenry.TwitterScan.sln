@@ -9,6 +9,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JackHenry.TwitterScan.Emitt
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JackHenry.TwitterScan.PocConsole", "JackHenry.TwitterScan.PocConsole\JackHenry.TwitterScan.PocConsole.csproj", "{07B2738E-56E2-4586-9208-5CF7DFF1BC7D}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JackHenry.TwitterScan.Service", "JackHenry.TwitterScan.Service\JackHenry.TwitterScan.Service.csproj", "{8CEEFC84-4264-4C84-BC5D-B84E7CC6313E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JackHenry.TwitterScan.Service.Tests", "JackHenry.TwitterScan.Service.Tests\JackHenry.TwitterScan.Service.Tests.csproj", "{3FB96E62-6E77-4868-B1C8-5216FC30D81A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +31,14 @@ Global
 		{07B2738E-56E2-4586-9208-5CF7DFF1BC7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{07B2738E-56E2-4586-9208-5CF7DFF1BC7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{07B2738E-56E2-4586-9208-5CF7DFF1BC7D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8CEEFC84-4264-4C84-BC5D-B84E7CC6313E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8CEEFC84-4264-4C84-BC5D-B84E7CC6313E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8CEEFC84-4264-4C84-BC5D-B84E7CC6313E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8CEEFC84-4264-4C84-BC5D-B84E7CC6313E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3FB96E62-6E77-4868-B1C8-5216FC30D81A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3FB96E62-6E77-4868-B1C8-5216FC30D81A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3FB96E62-6E77-4868-B1C8-5216FC30D81A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3FB96E62-6E77-4868-B1C8-5216FC30D81A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

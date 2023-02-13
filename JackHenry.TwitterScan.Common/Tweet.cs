@@ -1,7 +1,13 @@
 ﻿namespace JackHenry.TwitterScan;
-public record Tweet
+public class Tweet
 {
-    public TweetEntities entities { get; } = new TweetEntities();
+    public TweetEntities entities { get; set; } = new TweetEntities();
+
+    public Tweet() { }
+    public Tweet(params string[] hashtags) => 
+        entities.hashtags = hashtags
+            .Select(_ => new TweetHashtag { tag = _ })
+            .ToArray();
 }
 
 public class TweetEntities
