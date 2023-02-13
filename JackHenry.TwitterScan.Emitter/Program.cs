@@ -65,13 +65,17 @@ app.MapGet("/stream", (int? rate) =>
             new TweetHashtag[5],
         };
 
+        var squareOfLength = testtags.Length * testtags.Length;
         while (true)
         {
             while (count >= (DateTime.UtcNow.Ticks - start) / ticksPerTweet) await Task.Yield();
 
             tweet.entities.hashtags = hashArrays[rand.Next(6)];
-            for(var i = 0; i < tweet.entities.hashtags.Length; i++)
-                tweet.entities.hashtags[i] = testtags[rand.Next(testtags.Length)];
+            for (var i = 0; i < tweet.entities.hashtags.Length; i++)
+            {
+                var pick = (int)Math.Sqrt(rand.Next(squareOfLength) + 1) - 1;
+                tweet.entities.hashtags[i] = testtags[pick];
+            }
             
             yield return tweet;
             

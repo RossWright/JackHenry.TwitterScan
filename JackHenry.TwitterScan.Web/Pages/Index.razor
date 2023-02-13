@@ -1,0 +1,51 @@
+﻿@page "/"
+
+<PageTitle>Twitter Scan</PageTitle>
+
+<p>Connected to service at @httpClient.BaseAddress</p>
+
+@if (tweetStats != null)
+{
+    <p>Elapsed Seconds: @($"{tweetStats.ElapsedSeconds:0.0}")</p>
+    <p>Tweet Count: @($"{tweetStats.Count:0,0}")</p>
+    <p>Tweets Per Second: @($"{tweetStats.Count / tweetStats.ElapsedSeconds:0,0}")</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Hashtag</th>
+                <th>Occurances</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                var i = 1;
+                foreach(var hashtag in tweetStats.TopTenHashtags)
+                {
+                    <tr>
+                        <td>@(i++)</td>
+                        <td>#@hashtag.Tag</td>
+                        <td>@($"{hashtag.Count:0,0} ({hashtag.Count / (double)tweetStats.Count:0.00}%)")</td>
+                    </tr>                
+                }
+            }
+        </tbody>
+    </table>
+}
+
+@inject HttpClient httpClient
+@code
+{
+    TweetStats? tweetStats;
+
+    protected override async Task OnInitializedAsync()
+    {
+        while (true)
+        {
+            tweetStats = await httpClient.GetFromJsonAsync<TweetStats>($"stats");
+            StateHasChanged();
+            await Task.Delay(500);
+        }
+    }
+}

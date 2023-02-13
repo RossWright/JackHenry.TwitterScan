@@ -36,7 +36,6 @@ public class TweetStatRepository : ITweetStatRepository
                 _hashTagCount.AddOrUpdate(hashtag.tag, 1, (key, value) => value + 1);
             }
         }
-        _logger.LogInformation($"Tweet added with {tweet.entities?.hashtags?.Length ?? 0} hashtags");
     }
 
     public TweetStats GetTweetStats()

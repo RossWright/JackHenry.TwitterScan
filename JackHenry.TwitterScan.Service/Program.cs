@@ -19,6 +19,18 @@ builder.Services.AddScoped<ITweetReceiver, TweetReciever>();
 builder.Services.AddHostedService<TweetReceiverBackgroundService>();
 
 // Add API to the container.
+var CORS_POLICY_NAME = "clientCorsPolicy";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(CORS_POLICY_NAME,
+        policy =>
+        {
+            policy
+                .AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
+});
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -35,6 +47,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+
+app.UseCors(CORS_POLICY_NAME);
 
 app.MapControllers();
 

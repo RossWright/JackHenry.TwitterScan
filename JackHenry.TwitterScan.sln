@@ -11,7 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JackHenry.TwitterScan.PocCo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JackHenry.TwitterScan.Service", "JackHenry.TwitterScan.Service\JackHenry.TwitterScan.Service.csproj", "{8CEEFC84-4264-4C84-BC5D-B84E7CC6313E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JackHenry.TwitterScan.Service.Tests", "JackHenry.TwitterScan.Service.Tests\JackHenry.TwitterScan.Service.Tests.csproj", "{3FB96E62-6E77-4868-B1C8-5216FC30D81A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JackHenry.TwitterScan.Service.Tests", "JackHenry.TwitterScan.Service.Tests\JackHenry.TwitterScan.Service.Tests.csproj", "{3FB96E62-6E77-4868-B1C8-5216FC30D81A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JackHenry.TwitterScan.Web", "JackHenry.TwitterScan.Web\JackHenry.TwitterScan.Web.csproj", "{23BD3A01-3504-42DF-89F5-57BCB9DC24C8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{3FB96E62-6E77-4868-B1C8-5216FC30D81A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3FB96E62-6E77-4868-B1C8-5216FC30D81A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3FB96E62-6E77-4868-B1C8-5216FC30D81A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23BD3A01-3504-42DF-89F5-57BCB9DC24C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23BD3A01-3504-42DF-89F5-57BCB9DC24C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23BD3A01-3504-42DF-89F5-57BCB9DC24C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23BD3A01-3504-42DF-89F5-57BCB9DC24C8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
