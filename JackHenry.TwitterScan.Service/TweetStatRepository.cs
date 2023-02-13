@@ -18,6 +18,7 @@ public class TweetStatRepository : ITweetStatRepository
 
     public void AddTweet(Tweet tweet)
     {
+        if (tweet == null) return;
         Interlocked.Increment(ref _count);
         if (tweet.entities?.hashtags?.Any() == true)
         {
