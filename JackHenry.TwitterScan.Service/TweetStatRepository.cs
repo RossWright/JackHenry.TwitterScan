@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace JackHenry.TwitterScan.Service;
 
