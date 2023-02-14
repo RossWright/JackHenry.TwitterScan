@@ -1,6 +1,6 @@
 ﻿using System.Collections.Concurrent;
 
-namespace JackHenry.TwitterScan.Service;
+namespace JackHenry.TwitterScan.Service.Services;
 
 public interface ITweetStatRepository
 {
@@ -28,11 +28,11 @@ public class TweetStatRepository : ITweetStatRepository
             return;
         }
         Interlocked.Increment(ref _count);
-        if (tweet.entities?.hashtags?.Any() == true)
+        if (tweet.Hashtags?.Any() == true)
         {
-            foreach (var hashtag in tweet.entities.hashtags)
+            foreach (var hashtag in tweet.Hashtags)
             {
-                _hashTagCount.AddOrUpdate(hashtag.tag, 1, (key, value) => value + 1);
+                _hashTagCount.AddOrUpdate(hashtag, 1, (key, value) => value + 1);
             }
         }
     }

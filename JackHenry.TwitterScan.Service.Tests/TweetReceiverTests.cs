@@ -1,3 +1,4 @@
+using JackHenry.TwitterScan.Service.Services;
 using Microsoft.Extensions.Logging;
 using Moq.Protected;
 using System.Net;
@@ -133,7 +134,7 @@ public partial class TweetReceiverTests
         var delayPerTweet = 10;
 
         // Define an Async Enumerable that has a delay between each yield
-        async IAsyncEnumerable<Tweet> SlowRollAsyncStream()
+        async IAsyncEnumerable<TweetDataWrapper> SlowRollAsyncStream()
         {
             foreach (var item in testStreamData)
             {
@@ -170,9 +171,9 @@ public partial class TweetReceiverTests
     };
 
     // Make test stream data with each tweet having a unique hashtag for equality checking
-    Tweet[] testStreamData = Enumerable
+    TweetDataWrapper[] testStreamData = Enumerable
             .Range(0, 500)
-            .Select(_ => new Tweet(Guid.NewGuid().ToString()))
+            .Select(_ => new TweetDataWrapper(Guid.NewGuid().ToString()))
             .ToArray();
 
     (Mock<ITweetStatRepository>, List<Tweet>) SetupTweetStatsRepo()
@@ -188,7 +189,7 @@ public partial class TweetReceiverTests
     {
         Assert.Equal(testStreamData.Length, addedTweets.Count);
         for (int i = 0; i < testStreamData.Length; i++)
-            Assert.Equal(testStreamData[i].entities.hashtags[0].tag, addedTweets[i].entities.hashtags[0].tag);
+            Assert.Equal(testStreamData[i].Data.Entities.Hashtags[0].Tag, addedTweets[i].Entities.Hashtags[0].Tag);
         mockTweetStatRepository.Verify(_ => _.Start(), Times.Once());
         mockTweetStatRepository.Verify(_ => _.AddTweet(It.IsAny<Tweet>()), Times.Exactly(testStreamData.Length));
     }

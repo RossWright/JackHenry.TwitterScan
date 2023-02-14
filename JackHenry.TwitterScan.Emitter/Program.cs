@@ -6,56 +6,56 @@ app.UseHttpsRedirection();
 
 var testtags = new TweetHashtag[]
 {
-    new TweetHashtag{ tag = "competition" },
-    new TweetHashtag{ tag = "influencer" },
-    new TweetHashtag{ tag = "influencermarketing" },
-    new TweetHashtag{ tag = "fridayfeeling" },
-    new TweetHashtag{ tag = "MondayMotivation" },
-    new TweetHashtag{ tag = "tbt" },
-    new TweetHashtag{ tag = "traveltuesday" },
-    new TweetHashtag{ tag = "vegan" },
-    new TweetHashtag{ tag = "fitness" },
-    new TweetHashtag{ tag = "UCLdraw" },
-    new TweetHashtag{ tag = "UEFA" },
-    new TweetHashtag{ tag = "Messi" },
-    new TweetHashtag{ tag = "Bayern" },
-    new TweetHashtag{ tag = "THE_W" },
-    new TweetHashtag{ tag = "NtMv1_6" },
-    new TweetHashtag{ tag = "Lille" },
-    new TweetHashtag{ tag = "Benfica" },
-    new TweetHashtag{ tag = "Villarreal" },
-    new TweetHashtag{ tag = "Atletico " },
-    new TweetHashtag{ tag = "Ajax" },
-    new TweetHashtag{ tag = "Sporting" },
-    new TweetHashtag{ tag = "TravelTuesday" },
-    new TweetHashtag{ tag = "WednesdayWisdom" },
-    new TweetHashtag{ tag = "ThursdayThoughts" },
-    new TweetHashtag{ tag = "FridayFeeling" },
-    new TweetHashtag{ tag = "love" },
-    new TweetHashtag{ tag = "Twitterers" },
-    new TweetHashtag{ tag = "smile" },
-    new TweetHashtag{ tag = "picoftheday" },
-    new TweetHashtag{ tag = "follow" },
-    new TweetHashtag{ tag = "fun" },
-    new TweetHashtag{ tag = "lol" },
-    new TweetHashtag{ tag = "friends" },
-    new TweetHashtag{ tag = "life" },
-    new TweetHashtag{ tag = "amazing" },
-    new TweetHashtag{ tag = "family" },
-    new TweetHashtag{ tag = "music" },
+    new TweetHashtag{ Tag = "competition" },
+    new TweetHashtag{ Tag = "influencer" },
+    new TweetHashtag{ Tag = "influencermarketing" },
+    new TweetHashtag{ Tag = "fridayfeeling" },
+    new TweetHashtag{ Tag = "MondayMotivation" },
+    new TweetHashtag{ Tag = "tbt" },
+    new TweetHashtag{ Tag = "traveltuesday" },
+    new TweetHashtag{ Tag = "vegan" },
+    new TweetHashtag{ Tag = "fitness" },
+    new TweetHashtag{ Tag = "UCLdraw" },
+    new TweetHashtag{ Tag = "UEFA" },
+    new TweetHashtag{ Tag = "Messi" },
+    new TweetHashtag{ Tag = "Bayern" },
+    new TweetHashtag{ Tag = "THE_W" },
+    new TweetHashtag{ Tag = "NtMv1_6" },
+    new TweetHashtag{ Tag = "Lille" },
+    new TweetHashtag{ Tag = "Benfica" },
+    new TweetHashtag{ Tag = "Villarreal" },
+    new TweetHashtag{ Tag = "Atletico " },
+    new TweetHashtag{ Tag = "Ajax" },
+    new TweetHashtag{ Tag = "Sporting" },
+    new TweetHashtag{ Tag = "TravelTuesday" },
+    new TweetHashtag{ Tag = "WednesdayWisdom" },
+    new TweetHashtag{ Tag = "ThursdayThoughts" },
+    new TweetHashtag{ Tag = "FridayFeeling" },
+    new TweetHashtag{ Tag = "love" },
+    new TweetHashtag{ Tag = "Twitterers" },
+    new TweetHashtag{ Tag = "smile" },
+    new TweetHashtag{ Tag = "picoftheday" },
+    new TweetHashtag{ Tag = "follow" },
+    new TweetHashtag{ Tag = "fun" },
+    new TweetHashtag{ Tag = "lol" },
+    new TweetHashtag{ Tag = "friends" },
+    new TweetHashtag{ Tag = "life" },
+    new TweetHashtag{ Tag = "amazing" },
+    new TweetHashtag{ Tag = "family" },
+    new TweetHashtag{ Tag = "music" },
 };
 
 app.MapGet("/stream", (int? rate) =>
 {
-    async IAsyncEnumerable<Tweet> Stream()
+    async IAsyncEnumerable<TweetDataWrapper> Stream()
     {
         var ratePerSecond = rate ?? 57;
         var ticksPerTweet = TimeSpan.TicksPerSecond / ratePerSecond;
-        Tweet tweet = new Tweet();
+        var tweetDataWrapper = new TweetDataWrapper();
         var start = DateTime.UtcNow.Ticks;
         var count = 0;
         var rand = new Random();
-        var hashArrays = new TweetHashtag[][]
+        var preAllocatedHashtagArrays = new TweetHashtag[][]
         {
             new TweetHashtag[0],
             new TweetHashtag[1],
@@ -70,14 +70,17 @@ app.MapGet("/stream", (int? rate) =>
         {
             while (count >= (DateTime.UtcNow.Ticks - start) / ticksPerTweet) await Task.Yield();
 
-            tweet.entities.hashtags = hashArrays[rand.Next(6)];
-            for (var i = 0; i < tweet.entities.hashtags.Length; i++)
+            // Randomly choose between a tweet with 0 and 5 hashtags
+            var hashtags = preAllocatedHashtagArrays[rand.Next(6)];
+            // Random pick the hashtags using a method that picks the hashtags near the end of the array more often
+            for (var i = 0; i < hashtags.Length; i++)
             {
-                var pick = (int)Math.Sqrt(rand.Next(squareOfLength) + 1) - 1;
-                tweet.entities.hashtags[i] = testtags[pick];
+                var pick = (int)Math.Sqrt(rand.Next(squareOfLength) + 1);
+                hashtags[i] = testtags[pick];
             }
-            
-            yield return tweet;
+            tweetDataWrapper.Data.Entities.Hashtags = hashtags;
+
+            yield return tweetDataWrapper;
             
             count++;
         }

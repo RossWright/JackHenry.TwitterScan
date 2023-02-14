@@ -1,4 +1,4 @@
-using JackHenry.TwitterScan.Service;
+using JackHenry.TwitterScan.Service.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -58,7 +58,7 @@ using var reader = new StreamReader(stream);
 
 // process the stream
 var start = DateTime.UtcNow.Ticks;
-await foreach (var tweet in JsonSerializer.DeserializeAsyncEnumerable<Tweet>(stream, jsonOpts))
+await foreach (var tweet in JsonSerializer.DeserializeAsyncEnumerable<TweetDataWrapper>(stream, jsonOpts))
 {
     count++;
     if (count % tweetsPerUiUpdate == 0)

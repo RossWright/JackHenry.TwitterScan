@@ -1,12 +1,15 @@
-﻿using System.Net.Http.Headers;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Net.Http.Headers;
 using System.Text.Json;
-namespace JackHenry.TwitterScan.Service;
+
+namespace JackHenry.TwitterScan.Service.Services;
 
 public interface ITweetReceiver
 {
     Task OpenStream(CancellationToken stoppingToken);
 }
 
+[ExcludeFromCodeCoverage]
 public class TwitterReceiverConfiguration
 {
     public string Url { get; set; } = null!;
@@ -22,7 +25,7 @@ public class TweetReciever : ITweetReceiver
         IHttpClientFactory httpClientFactory,
         ITweetStatRepository tweetStatRepo) =>
         (_config, _logger, _httpClientFactory, _tweetStatRepo) =
-        ( config, logger, httpClientFactory, tweetStatRepo);
+        (config, logger, httpClientFactory, tweetStatRepo);
     readonly TwitterReceiverConfiguration _config;
     readonly ILogger<TweetReciever> _logger;
     readonly IHttpClientFactory _httpClientFactory;
@@ -45,7 +48,7 @@ public class TweetReciever : ITweetReceiver
         using var stream = await httpClient.GetStreamAsync(_config.Url, stoppingToken);
         _logger.LogInformation("Tweet Receiver Tweet stream opened.");
         using var reader = new StreamReader(stream);
-        var jsonStream = JsonSerializer.DeserializeAsyncEnumerable<Tweet>(stream,
+        var jsonStream = JsonSerializer.DeserializeAsyncEnumerable<TweetDataWrapper>(stream,
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true }, stoppingToken);
 
         // process the stream
@@ -54,18 +57,19 @@ public class TweetReciever : ITweetReceiver
         _logger.LogInformation("Tweet Receiver has stopped.");
     }
 
-    internal async Task ProcessStream(IAsyncEnumerable<Tweet?> jsonStream)
+    internal async Task ProcessStream(IAsyncEnumerable<TweetDataWrapper?> jsonStream)
     {
         var count = 0;
         var rate = 1.0;
         var start = DateTime.UtcNow.Ticks;
         _tweetStatRepo.Start();
-        await foreach (var tweet in jsonStream)
+        await foreach (var dataWrapper in jsonStream)
         {
-            _tweetStatRepo.AddTweet(tweet!);
+            if (dataWrapper == null) continue;
+            _tweetStatRepo.AddTweet(dataWrapper.Data);
             count++;
 
-            // try to limit rate adjustment and logging chances to about once per second
+            // limit rate adjustment and logging chances to about once per second
             if (count % (int)rate == 0)
             {
                 var secondsElapsed = (double)(DateTime.UtcNow.Ticks - start) / TimeSpan.TicksPerSecond;

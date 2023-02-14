@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using JackHenry.TwitterScan.Service.Services;
+using Microsoft.Extensions.Logging;
 
 namespace JackHenry.TwitterScan.Service.Tests;
 
@@ -110,7 +111,7 @@ public partial class TweetStatRepositoryTests
         stop = true;
 
         Assert.InRange(addedTweats, stats.Count - 1, stats.Count + 1);
-        Assert.InRange(stats.TopTenHashtags.Sum(_ => _.Count), tagCount - 10, tagCount + 10);
+        Assert.InRange(stats.TopTenHashtags.Sum(_ => _.Count), tagCount * 0.95, tagCount * 1.05);
     }
 
     [Fact]

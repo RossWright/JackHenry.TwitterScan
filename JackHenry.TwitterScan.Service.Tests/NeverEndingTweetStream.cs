@@ -11,8 +11,8 @@ public partial class TweetReceiverTests
                 StringBuilder json = new StringBuilder();
                 while (leftovers.Count + json.Length < count)
                 {
-                    tweet.entities.hashtags[0].tag = Guid.NewGuid().ToString();
-                    json.Append(JsonSerializer.Serialize(tweet) + ",");
+                    tweetDataWrapper.Data.Entities.Hashtags[0].Tag = Guid.NewGuid().ToString();
+                    json.Append(JsonSerializer.Serialize(tweetDataWrapper) + ",");
                 }
                 leftovers.AddRange(Encoding.UTF8.GetBytes(json.ToString()));
             }
@@ -20,7 +20,7 @@ public partial class TweetReceiverTests
             leftovers.RemoveRange(0, count - offset);
             return count - offset;
         }
-        Tweet tweet = new Tweet(Guid.NewGuid().ToString());
+        TweetDataWrapper tweetDataWrapper = new TweetDataWrapper(Guid.NewGuid().ToString());
         List<byte> leftovers = Encoding.UTF8.GetBytes(new string("[")).ToList();
 
         public override bool CanRead => true;

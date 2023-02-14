@@ -1,9 +1,12 @@
+using JackHenry.TwitterScan.Service.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics.CodeAnalysis;
 
 namespace JackHenry.TwitterScan.Service.Controllers;
 
 [ApiController]
 [Route("stats")]
+[ExcludeFromCodeCoverage] // Testing the plumbing of ASP.NET has diminishing returns
 public class TweetStatController : ControllerBase
 {
     readonly ILogger<TweetStatController> _logger;
