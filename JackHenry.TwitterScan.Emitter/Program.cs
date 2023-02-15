@@ -1,48 +1,32 @@
 using JackHenry.TwitterScan;
+using System.ComponentModel.DataAnnotations;
+using System.Runtime.CompilerServices;
 
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 app.UseHttpsRedirection();
 
-var testtags = new TweetHashtag[]
+var testTags = new TweetHashtag[]
 {
-    new TweetHashtag{ Tag = "competition" },
-    new TweetHashtag{ Tag = "influencer" },
-    new TweetHashtag{ Tag = "influencermarketing" },
-    new TweetHashtag{ Tag = "fridayfeeling" },
-    new TweetHashtag{ Tag = "MondayMotivation" },
-    new TweetHashtag{ Tag = "tbt" },
-    new TweetHashtag{ Tag = "traveltuesday" },
-    new TweetHashtag{ Tag = "vegan" },
-    new TweetHashtag{ Tag = "fitness" },
-    new TweetHashtag{ Tag = "UCLdraw" },
-    new TweetHashtag{ Tag = "UEFA" },
-    new TweetHashtag{ Tag = "Messi" },
-    new TweetHashtag{ Tag = "Bayern" },
-    new TweetHashtag{ Tag = "THE_W" },
-    new TweetHashtag{ Tag = "NtMv1_6" },
-    new TweetHashtag{ Tag = "Lille" },
-    new TweetHashtag{ Tag = "Benfica" },
-    new TweetHashtag{ Tag = "Villarreal" },
-    new TweetHashtag{ Tag = "Atletico " },
-    new TweetHashtag{ Tag = "Ajax" },
-    new TweetHashtag{ Tag = "Sporting" },
-    new TweetHashtag{ Tag = "TravelTuesday" },
-    new TweetHashtag{ Tag = "WednesdayWisdom" },
-    new TweetHashtag{ Tag = "ThursdayThoughts" },
-    new TweetHashtag{ Tag = "FridayFeeling" },
+    new TweetHashtag{ Tag = "atletico" },
+    new TweetHashtag{ Tag = "ajax" },
+    new TweetHashtag{ Tag = "sporting" },
+    new TweetHashtag{ Tag = "travel" },
+    new TweetHashtag{ Tag = "wisdom" },
+    new TweetHashtag{ Tag = "thoughts" },
+    new TweetHashtag{ Tag = "feeling" },
     new TweetHashtag{ Tag = "love" },
-    new TweetHashtag{ Tag = "Twitterers" },
-    new TweetHashtag{ Tag = "smile" },
-    new TweetHashtag{ Tag = "picoftheday" },
-    new TweetHashtag{ Tag = "follow" },
-    new TweetHashtag{ Tag = "fun" },
-    new TweetHashtag{ Tag = "lol" },
-    new TweetHashtag{ Tag = "friends" },
-    new TweetHashtag{ Tag = "life" },
-    new TweetHashtag{ Tag = "amazing" },
-    new TweetHashtag{ Tag = "family" },
-    new TweetHashtag{ Tag = "music" },
+    new TweetHashtag{ Tag = "midpoint" },
+    new TweetHashtag{ Tag = "dude" },
+    new TweetHashtag{ Tag = "smart" },
+    new TweetHashtag{ Tag = "super" },
+    new TweetHashtag{ Tag = "is a" },
+    new TweetHashtag{ Tag = "he" },
+    new TweetHashtag{ Tag = "wright" },
+    new TweetHashtag{ Tag = "ross" },
+    new TweetHashtag{ Tag = "hire" },
+    new TweetHashtag{ Tag = "should" },
+    new TweetHashtag{ Tag = "you" },
 };
 
 app.MapGet("/stream", (int? rate) =>
@@ -65,18 +49,55 @@ app.MapGet("/stream", (int? rate) =>
             new TweetHashtag[5],
         };
 
-        var squareOfLength = testtags.Length * testtags.Length;
+        // define 3 phases of tweet hashtag frequency to illustrate changing trends
+        var stackedTestTagSets = new TweetHashtag[][]
+        {
+            // fair deck, all tag have equal chance
+            testTags,
+
+            //stack the deck so higher index hashtags are picked more
+            Enumerable
+                .Range(0, testTags.Length)
+                .SelectMany(i => Enumerable.Repeat(testTags[i], i + 1))
+                .ToArray(),
+
+            //stack the deck so lower index hashtags are picked more
+            Enumerable
+                .Range(0, testTags.Length)
+                .SelectMany(i => Enumerable.Repeat(testTags[i], (testTags.Length - 1 - i)/3 + 1))
+                .ToArray(),
+        };
+
+        // Start with the first stacked Test Tag Set
+        var stackedTestTags = stackedTestTagSets[0];
+
+        var squareOfLength = testTags.Length * testTags.Length;
         while (true)
         {
-            while (count >= (DateTime.UtcNow.Ticks - start) / ticksPerTweet) await Task.Yield();
+            var elapsedTicks = DateTime.UtcNow.Ticks - start;
+            while (count >= elapsedTicks / ticksPerTweet) await Task.Yield();
+
+            if (stackedTestTags != stackedTestTagSets[2]) 
+            {
+                if (stackedTestTags == stackedTestTagSets[1])
+                {
+                    // After 30 seconds, switch to the last set
+                    if (elapsedTicks > 30 * TimeSpan.TicksPerSecond)
+                        stackedTestTags = stackedTestTagSets[2];
+                }
+                else
+                {
+                    // after 15 seconds, switch to the next set
+                    if (elapsedTicks > 15 * TimeSpan.TicksPerSecond)
+                        stackedTestTags = stackedTestTagSets[1];
+                }
+            }
 
             // Randomly choose between a tweet with 0 and 5 hashtags
             var hashtags = preAllocatedHashtagArrays[rand.Next(6)];
-            // Random pick the hashtags using a method that picks the hashtags near the end of the array more often
             for (var i = 0; i < hashtags.Length; i++)
             {
-                var pick = (int)Math.Sqrt(rand.Next(squareOfLength) + 1);
-                hashtags[i] = testtags[pick];
+                hashtags[i] = stackedTestTags[rand.Next(stackedTestTags.Length)];
             }
             tweetDataWrapper.Data.Entities.Hashtags = hashtags;
 
