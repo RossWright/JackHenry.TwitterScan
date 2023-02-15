@@ -2,17 +2,17 @@
 
 namespace JackHenry.TwitterScan.Service.Services;
 
-public interface ITweetStatRepository
+public interface ITweetStatisticsRepository
 {
     void Start();
     void AddTweet(Tweet tweet);
     TweetStats GetTweetStats();
 }
 
-public class TweetStatRepository : ITweetStatRepository
+public class TweetStatisticsRepository : ITweetStatisticsRepository
 {
-    public TweetStatRepository(ILogger<TweetStatRepository> logger) => _logger = logger;
-    readonly ILogger<TweetStatRepository> _logger;
+    public TweetStatisticsRepository(ILogger<TweetStatisticsRepository> logger) => _logger = logger;
+    readonly ILogger<TweetStatisticsRepository> _logger;
 
     int _count = 0;
     ConcurrentDictionary<string, int> _hashTagCount = new ConcurrentDictionary<string, int>();

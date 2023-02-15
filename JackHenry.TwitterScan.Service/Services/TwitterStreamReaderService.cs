@@ -4,32 +4,32 @@ using System.Text.Json;
 
 namespace JackHenry.TwitterScan.Service.Services;
 
-public interface ITweetReceiver
+public interface ITwitterStreamReaderService
 {
     Task OpenStream(CancellationToken stoppingToken);
 }
 
 [ExcludeFromCodeCoverage]
-public class TwitterReceiverConfiguration
+public class TwitterStreamReaderServiceConfiguration
 {
     public string Url { get; set; } = null!;
     public string? AccessToken { get; set; }
     public int logFrequencySeconds { get; set; }
 }
 
-public class TweetReciever : ITweetReceiver
+public class TwitterStreamReaderService : ITwitterStreamReaderService
 {
-    public TweetReciever(
-        TwitterReceiverConfiguration config,
-        ILogger<TweetReciever> logger,
+    public TwitterStreamReaderService(
+        TwitterStreamReaderServiceConfiguration config,
+        ILogger<TwitterStreamReaderService> logger,
         IHttpClientFactory httpClientFactory,
-        ITweetStatRepository tweetStatRepo) =>
+        ITweetStatisticsRepository tweetStatRepo) =>
         (_config, _logger, _httpClientFactory, _tweetStatRepo) =
         (config, logger, httpClientFactory, tweetStatRepo);
-    readonly TwitterReceiverConfiguration _config;
-    readonly ILogger<TweetReciever> _logger;
+    readonly TwitterStreamReaderServiceConfiguration _config;
+    readonly ILogger<TwitterStreamReaderService> _logger;
     readonly IHttpClientFactory _httpClientFactory;
-    readonly ITweetStatRepository _tweetStatRepo;
+    readonly ITweetStatisticsRepository _tweetStatRepo;
 
     public async Task OpenStream(CancellationToken stoppingToken)
     {

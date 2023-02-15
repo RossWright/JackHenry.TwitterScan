@@ -3,13 +3,13 @@ using Microsoft.Extensions.Logging;
 
 namespace JackHenry.TwitterScan.Service.Tests;
 
-public partial class TweetStatRepositoryTests
+public class TweetStatisticsRepositoryTests
 {
     [Fact]
     public void HappyPath()
     {
-        var mockLogger = new Mock<ILogger<TweetStatRepository>>();
-        var statRepo = new TweetStatRepository(mockLogger.Object);
+        var mockLogger = new Mock<ILogger<TweetStatisticsRepository>>();
+        var statRepo = new TweetStatisticsRepository(mockLogger.Object);
         
         string[] hashtags = Enumerable.Range(0, 100)
             .Select(i => $"hashtagindex{i}")
@@ -47,8 +47,8 @@ public partial class TweetStatRepositoryTests
     [Fact]
     public void CheckHashtagCount()
     {
-        var mockLogger = new Mock<ILogger<TweetStatRepository>>();
-        var statRepo = new TweetStatRepository(mockLogger.Object);
+        var mockLogger = new Mock<ILogger<TweetStatisticsRepository>>();
+        var statRepo = new TweetStatisticsRepository(mockLogger.Object);
 
         string[] hashtags = Enumerable.Range(0, 10)
             .Select(i => $"hashtagindex{i}")
@@ -71,8 +71,8 @@ public partial class TweetStatRepositoryTests
     [Fact]
     public async Task Multithread()
     {
-        var mockLogger = new Mock<ILogger<TweetStatRepository>>();
-        var statRepo = new TweetStatRepository(mockLogger.Object);
+        var mockLogger = new Mock<ILogger<TweetStatisticsRepository>>();
+        var statRepo = new TweetStatisticsRepository(mockLogger.Object);
 
         bool stop = false;
 
@@ -117,8 +117,8 @@ public partial class TweetStatRepositoryTests
     [Fact]
     public void AddTweetsWithSameHashtags()
     {
-        var mockLogger = new Mock<ILogger<TweetStatRepository>>();
-        var statRepo = new TweetStatRepository(mockLogger.Object);
+        var mockLogger = new Mock<ILogger<TweetStatisticsRepository>>();
+        var statRepo = new TweetStatisticsRepository(mockLogger.Object);
 
         for (var i = 0; i < 100; i++)
             statRepo.AddTweet(new Tweet("thehashtag"));
@@ -131,8 +131,8 @@ public partial class TweetStatRepositoryTests
     [Fact]
     public void AddNullTweet()
     {
-        var mockLogger = new Mock<ILogger<TweetStatRepository>>();
-        var statRepo = new TweetStatRepository(mockLogger.Object);
+        var mockLogger = new Mock<ILogger<TweetStatisticsRepository>>();
+        var statRepo = new TweetStatisticsRepository(mockLogger.Object);
 
         statRepo.AddTweet(null!);
         var stats = statRepo.GetTweetStats();
@@ -151,8 +151,8 @@ public partial class TweetStatRepositoryTests
     [Fact]
     public void AddTweetWithoutHashtags()
     {
-        var mockLogger = new Mock<ILogger<TweetStatRepository>>();
-        var statRepo = new TweetStatRepository(mockLogger.Object);
+        var mockLogger = new Mock<ILogger<TweetStatisticsRepository>>();
+        var statRepo = new TweetStatisticsRepository(mockLogger.Object);
 
         statRepo.AddTweet(new Tweet());
         var stats = statRepo.GetTweetStats();

@@ -3,21 +3,21 @@
 namespace JackHenry.TwitterScan.Service.Services;
 
 [ExcludeFromCodeCoverage] // Testing the plumbing of ASP.NET has diminishing returns
-public class TweetReceiverBackgroundService : BackgroundService
+public class TwitterStreamReaderBackgroundService : BackgroundService
 {
-    public TweetReceiverBackgroundService(IServiceProvider serviceProvider,
-        ILogger<TweetReceiverBackgroundService> logger) =>
+    public TwitterStreamReaderBackgroundService(IServiceProvider serviceProvider,
+        ILogger<TwitterStreamReaderBackgroundService> logger) =>
         (_serviceProvider, _logger) =
         (serviceProvider, logger);
     readonly IServiceProvider _serviceProvider;
-    readonly ILogger<TweetReceiverBackgroundService> _logger;
+    readonly ILogger<TwitterStreamReaderBackgroundService> _logger;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation("Tweet Receiver Background Service is running.");
 
         using var serviceScope = _serviceProvider.CreateScope();
-        var receiver = serviceScope.ServiceProvider.GetRequiredService<ITweetReceiver>();
+        var receiver = serviceScope.ServiceProvider.GetRequiredService<ITwitterStreamReaderService>();
 
         await receiver.OpenStream(stoppingToken);
 

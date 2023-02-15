@@ -5,12 +5,12 @@ using System.Net;
 
 namespace JackHenry.TwitterScan.Service.Tests;
 
-public partial class TweetReceiverTests
+public class TwitterStreamReaderServiceTests
 {
     [Fact]
     public async Task OpenStream_HappyPath()
     {
-        var mockLogger = new Mock<ILogger<TweetReciever>>();
+        var mockLogger = new Mock<ILogger<TwitterStreamReaderService>>();
 
         (var mockHttpClientFactory, var mockHttpMessageHandler) = SetupMockHttp(new HttpResponseMessage
         { 
@@ -21,7 +21,7 @@ public partial class TweetReceiverTests
         (var mockTweetStatRepository, var addedTweets) = SetupTweetStatsRepo();
 
         // Intantiate Service
-        var svc = new TweetReciever(cfg,
+        var svc = new TwitterStreamReaderService(cfg,
             mockLogger.Object,
             mockHttpClientFactory.Object,
             mockTweetStatRepository.Object);
@@ -46,12 +46,12 @@ public partial class TweetReceiverTests
     {
         cfg.Url = "BAD URL";
 
-        var mockLogger = new Mock<ILogger<TweetReciever>>();
+        var mockLogger = new Mock<ILogger<TwitterStreamReaderService>>();
         (var mockHttpClientFactory, _) = SetupMockHttp(new HttpResponseMessage()); 
-        var mockTweetStatRepository = new Mock<ITweetStatRepository>();
+        var mockTweetStatRepository = new Mock<ITweetStatisticsRepository>();
 
         // Intantiate Service
-        var svc = new TweetReciever(cfg,
+        var svc = new TwitterStreamReaderService(cfg,
             mockLogger.Object,
             mockHttpClientFactory.Object,
             mockTweetStatRepository.Object);
@@ -65,15 +65,15 @@ public partial class TweetReceiverTests
     [Fact]
     public async Task OpenStream_401()
     {
-        var mockLogger = new Mock<ILogger<TweetReciever>>();
+        var mockLogger = new Mock<ILogger<TwitterStreamReaderService>>();
         (var mockHttpClientFactory, _) = SetupMockHttp(new HttpResponseMessage
         {
             StatusCode = HttpStatusCode.Unauthorized
         });
-        var mockTweetStatRepository = new Mock<ITweetStatRepository>();
+        var mockTweetStatRepository = new Mock<ITweetStatisticsRepository>();
 
         // Intantiate Service
-        var svc = new TweetReciever(cfg,
+        var svc = new TwitterStreamReaderService(cfg,
             mockLogger.Object,
             mockHttpClientFactory.Object,
             mockTweetStatRepository.Object);
@@ -87,16 +87,16 @@ public partial class TweetReceiverTests
     [Fact(Timeout=5000)]
     public async Task OpenStream_CancelToken()
     {
-        var mockLogger = new Mock<ILogger<TweetReciever>>();
+        var mockLogger = new Mock<ILogger<TwitterStreamReaderService>>();
         (var mockHttpClientFactory, _) = SetupMockHttp(new HttpResponseMessage
         {
             StatusCode = HttpStatusCode.OK,
             Content = new StreamContent(new NeverEndingTweetStream())
         });
-        var mockTweetStatRepository = new Mock<ITweetStatRepository>();
+        var mockTweetStatRepository = new Mock<ITweetStatisticsRepository>();
 
         // Intantiate Service
-        var svc = new TweetReciever(cfg,
+        var svc = new TwitterStreamReaderService(cfg,
             mockLogger.Object,
             mockHttpClientFactory.Object,
             mockTweetStatRepository.Object);
@@ -113,7 +113,7 @@ public partial class TweetReceiverTests
     [Fact]
     public async Task ProcessStream_LogThrottling()
     {
-        Mock<ILogger<TweetReciever>> mockLogger = new Mock<ILogger<TweetReciever>>(MockBehavior.Strict);
+        Mock<ILogger<TwitterStreamReaderService>> mockLogger = new Mock<ILogger<TwitterStreamReaderService>>(MockBehavior.Strict);
         mockLogger.Setup(_ => _.Log(
             It.Is<LogLevel>(logLevel => logLevel == LogLevel.Information),
             It.IsAny<EventId>(),
@@ -125,7 +125,7 @@ public partial class TweetReceiverTests
         (var mockTweetStatRepository, var addedTweets) = SetupTweetStatsRepo();
 
         // Intantiate Service
-        var svc = new TweetReciever(cfg,
+        var svc = new TwitterStreamReaderService(cfg,
             mockLogger.Object,
             mockHttpClientFactory.Object,
             mockTweetStatRepository.Object);
@@ -163,7 +163,7 @@ public partial class TweetReceiverTests
             Times.Between(expectedLogEntriesMin, expectedLogEntriesMax, Moq.Range.Inclusive));
     }
 
-    TwitterReceiverConfiguration cfg = new TwitterReceiverConfiguration
+    TwitterStreamReaderServiceConfiguration cfg = new TwitterStreamReaderServiceConfiguration
     {
         logFrequencySeconds = 1,
         Url = "http://TestServer.com/NotCalled",
@@ -176,16 +176,16 @@ public partial class TweetReceiverTests
             .Select(_ => new TweetDataWrapper(Guid.NewGuid().ToString()))
             .ToArray();
 
-    (Mock<ITweetStatRepository>, List<Tweet>) SetupTweetStatsRepo()
+    (Mock<ITweetStatisticsRepository>, List<Tweet>) SetupTweetStatsRepo()
     {
-        var mockTweetStatRepository = new Mock<ITweetStatRepository>(MockBehavior.Strict);
+        var mockTweetStatRepository = new Mock<ITweetStatisticsRepository>(MockBehavior.Strict);
         var addedTweets = new List<Tweet>();
         mockTweetStatRepository.Setup(_ => _.Start()).Verifiable();
         mockTweetStatRepository.Setup(_ => _.AddTweet(Capture.In(addedTweets))).Verifiable();
         return (mockTweetStatRepository, addedTweets);
     }
 
-    void VerifyTweetStatsRepo(Mock<ITweetStatRepository> mockTweetStatRepository, List<Tweet> addedTweets)
+    void VerifyTweetStatsRepo(Mock<ITweetStatisticsRepository> mockTweetStatRepository, List<Tweet> addedTweets)
     {
         Assert.Equal(testStreamData.Length, addedTweets.Count);
         for (int i = 0; i < testStreamData.Length; i++)

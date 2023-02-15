@@ -8,15 +8,15 @@ builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 
 // Load and Add the Stream Counter Config to the container
-var twitterReceiverConfiguration = new TwitterReceiverConfiguration();
-builder.Configuration.Bind("TwitterConnection", twitterReceiverConfiguration);
-builder.Services.AddSingleton(twitterReceiverConfiguration);
+var TwitterStreamReaderServiceConfiguration = new TwitterStreamReaderServiceConfiguration();
+builder.Configuration.Bind("TwitterConnection", TwitterStreamReaderServiceConfiguration);
+builder.Services.AddSingleton(TwitterStreamReaderServiceConfiguration);
 
 // Add services to the container.
 builder.Services.AddHttpClient();
-builder.Services.AddSingleton<ITweetStatRepository, TweetStatRepository>();
-builder.Services.AddScoped<ITweetReceiver, TweetReciever>();
-builder.Services.AddHostedService<TweetReceiverBackgroundService>();
+builder.Services.AddSingleton<ITweetStatisticsRepository, TweetStatisticsRepository>();
+builder.Services.AddScoped<ITwitterStreamReaderService, TwitterStreamReaderService>();
+builder.Services.AddHostedService<TwitterStreamReaderBackgroundService>();
 
 // Add API to the container.
 var CORS_POLICY_NAME = "clientCorsPolicy";

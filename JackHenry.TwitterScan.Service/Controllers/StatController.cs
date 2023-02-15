@@ -12,13 +12,13 @@ public class TweetStatController : ControllerBase
     readonly ILogger<TweetStatController> _logger;
 
     public TweetStatController(
-        ITweetStatRepository statRepo,
+        ITweetStatisticsRepository statRepo,
         ILogger<TweetStatController> logger)
     {
         _statRepo = statRepo;
         _logger = logger;
     }
-    readonly ITweetStatRepository _statRepo;
+    readonly ITweetStatisticsRepository _statRepo;
 
     [HttpGet]
     [ProducesResponseType(typeof(TweetStats), 200)]
