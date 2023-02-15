@@ -93,7 +93,6 @@ public partial class TweetStatRepositoryTests
                 tagCount += tags.Length;
                 statRepo.AddTweet(new Tweet(tags));
                 addedTweats++;
-                await Task.Delay(10);
             }
         });
 
@@ -102,7 +101,6 @@ public partial class TweetStatRepositoryTests
         {
             while (!stop)
             {
-                await Task.Delay(100);
                 stats = statRepo.GetTweetStats();
             }
         });
@@ -110,8 +108,10 @@ public partial class TweetStatRepositoryTests
         await Task.Delay(5000);
         stop = true;
 
-        Assert.InRange(addedTweats, stats.Count - 1, stats.Count + 1);
-        Assert.InRange(stats.TopTenHashtags.Sum(_ => _.Count), tagCount * 0.95, tagCount * 1.05);
+        stats = statRepo.GetTweetStats();
+
+        Assert.Equal(stats.Count, addedTweats);
+        Assert.Equal(tagCount, stats.TopTenHashtags.Sum(_ => _.Count));
     }
 
     [Fact]
