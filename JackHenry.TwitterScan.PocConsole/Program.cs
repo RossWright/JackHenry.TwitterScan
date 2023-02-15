@@ -34,11 +34,7 @@ var requestUri = rate == -1
 Console.WriteLine("Elapsed      Count        Rate");
 var backspaces = new string('\b', 30);
 Console.Write(new string('*', 30));
-var count = 0;
-var jsonOpts = new JsonSerializerOptions
-{
-    PropertyNameCaseInsensitive = true,
-};
+
 //limit how often the UI is updated to reduce performance impact from console output
 var tweetsPerUiUpdate = rate > 1000 ? ( rate > 100000 ? 1000000 : 1000) : 1;   
 var tweetUnits = rate > 1000 ? (rate > 100000 ? "M" : "K") : " ";
@@ -54,11 +50,18 @@ if (accessToken != null)
         new AuthenticationHeaderValue("Bearer", accessToken);
 }
 using var stream = await httpClient.GetStreamAsync(requestUri);
-using var reader = new StreamReader(stream);
+var jsonStream = JsonSerializer.DeserializeAsyncEnumerable<TweetDataWrapper>(stream,
+    new JsonSerializerOptions
+    {
+        PropertyNameCaseInsensitive = true,
+    });
+
+// Prepare variables used in the loop
+var count = 0;
+var start = DateTime.UtcNow.Ticks;
 
 // process the stream
-var start = DateTime.UtcNow.Ticks;
-await foreach (var tweet in JsonSerializer.DeserializeAsyncEnumerable<TweetDataWrapper>(stream, jsonOpts))
+await foreach (var tweet in jsonStream)
 {
     count++;
     if (count % tweetsPerUiUpdate == 0)

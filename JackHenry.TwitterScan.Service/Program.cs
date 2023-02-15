@@ -15,7 +15,7 @@ builder.Services.AddSingleton(TwitterStreamReaderServiceConfiguration);
 // Add services to the container.
 builder.Services.AddHttpClient();
 builder.Services.AddSingleton<ITweetStatisticsRepository, TweetStatisticsRepository>();
-builder.Services.AddScoped<ITwitterStreamReaderService, TwitterStreamReaderService>();
+builder.Services.AddSingleton<ITwitterStreamReaderService, TwitterStreamReaderService>();
 builder.Services.AddHostedService<TwitterStreamReaderBackgroundService>();
 
 // Add API to the container.

@@ -83,7 +83,7 @@ public class TweetStatisticsRepositoryTests
         var rand = new Random();
         int addedTweats = 0;
         int tagCount = 0;
-        _ = Task.Run(async () =>
+        _ = Task.Run(() =>
         {
             while (!stop)            
             {
@@ -97,7 +97,7 @@ public class TweetStatisticsRepositoryTests
         });
 
         TweetStats stats = null!;
-        _ = Task.Run(async () =>
+        _ = Task.Run(() =>
         {
             while (!stop)
             {
