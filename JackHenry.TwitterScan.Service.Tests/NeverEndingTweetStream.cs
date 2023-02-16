@@ -2,8 +2,17 @@
 
 public class NeverEndingTweetStream : Stream
 {
+    public void SuddenlyFail() => fail = true;
+    bool fail = false;
+
     public override int Read(byte[] buffer, int offset, int count)
     {
+        if (fail)
+        {
+            fail = false;
+            leftovers = Encoding.UTF8.GetBytes(new string("[")).ToList();
+            throw new ApplicationException("Test Failure");
+        }
         if (leftovers.Count < count)
         {
             StringBuilder json = new StringBuilder();

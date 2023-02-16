@@ -2,13 +2,14 @@ using JackHenry.TwitterScan.Service.Services;
 using Microsoft.Extensions.Logging;
 using Moq.Protected;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace JackHenry.TwitterScan.Service.Tests;
 
 public class TwitterStreamReaderServiceTests
 {
-    [Fact]
-    public async Task OpenStream_HappyPath()
+    [Fact(Timeout = 5000)]
+    public void OpenStream_HappyPath()
     {
         var mockLogger = new Mock<ILogger<TwitterStreamReaderService>>();
 
@@ -27,13 +28,13 @@ public class TwitterStreamReaderServiceTests
             mockTweetStatRepository.Object);
 
         // Conduct Test
-        var token = new CancellationTokenSource().Token;
-        await svc.OpenStream(token);
+        var cancelSource = new CancellationTokenSource();
+        var opTask = svc.OpenStream(cancelSource.Token, retyClosedConnection: false);
 
         VerifyTweetStatsRepo(mockTweetStatRepository, addedTweets);
 
         // Verify expected calls made to HttpClient
-        mockHttpClientFactory.Verify(_ => _.CreateClient(It.IsAny<string>()));
+        mockHttpClientFactory.Verify(_ => _.CreateClient(It.IsAny<string>()), Times.Once);
         mockHttpMessageHandler.Protected().Verify(
             "SendAsync",
             Times.Exactly(1),
@@ -41,7 +42,7 @@ public class TwitterStreamReaderServiceTests
             ItExpr.IsAny<CancellationToken>());
     }
 
-    [Fact]
+    [Fact(Timeout = 5000)]
     public async Task OpenStream_BadUrl()
     {
         cfg.Url = "BAD URL";
@@ -58,11 +59,12 @@ public class TwitterStreamReaderServiceTests
 
         // Conduct Test
         var token = new CancellationTokenSource().Token;
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => svc.OpenStream(token));
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => 
+        svc.OpenStream(token, retyClosedConnection: false));
         Assert.Contains("invalid request URI", exception.Message);
     }
 
-    [Fact]
+    [Fact(Timeout = 5000)]
     public async Task OpenStream_401()
     {
         var mockLogger = new Mock<ILogger<TwitterStreamReaderService>>();
@@ -80,7 +82,8 @@ public class TwitterStreamReaderServiceTests
 
         // Conduct Test
         var token = new CancellationTokenSource().Token;
-        var exception = await Assert.ThrowsAsync<HttpRequestException>(() => svc.OpenStream(token));
+        var exception = await Assert.ThrowsAsync<HttpRequestException>(() =>
+            svc.OpenStream(token, retyClosedConnection: false));
         Assert.Equal(HttpStatusCode.Unauthorized, exception.StatusCode);
     }
 
@@ -103,11 +106,51 @@ public class TwitterStreamReaderServiceTests
 
         // Conduct Test
         var cancelSource = new CancellationTokenSource();
-        var token = cancelSource.Token;
-        var opTask = svc.OpenStream(token);
+        var opTask = svc.OpenStream(cancelSource.Token, retyClosedConnection: false);
         await Task.Delay(1000);
         cancelSource.Cancel();
-        await Assert.ThrowsAsync<TaskCanceledException>(() => opTask);
+        await opTask;
+    }
+
+    [Fact(Timeout = 5000)]
+    public async Task OpenStream_ConnectionRecovery()
+    {
+        var mockLogger = new Mock<ILogger<TwitterStreamReaderService>>();
+
+        var stream = new NeverEndingTweetStream();
+        (var mockHttpClientFactory, var mockHttpMessageHandler) = SetupMockHttp(new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StreamContent(stream)
+        });
+
+        (var mockTweetStatRepository, var addedTweets) = SetupTweetStatsRepo();
+
+        // Intantiate Service
+        var svc = new TwitterStreamReaderService(cfg,
+            mockLogger.Object,
+            mockHttpClientFactory.Object,
+            mockTweetStatRepository.Object);
+
+        // Conduct Test
+        var cancelSource = new CancellationTokenSource();
+        var opTask = svc.OpenStream(cancelSource.Token);
+
+        await Task.Delay(500);
+        stream.SuddenlyFail();
+        await Task.Delay(500);
+        stream.SuddenlyFail();
+        await Task.Delay(500);
+        cancelSource.Cancel();
+        await opTask;
+
+        // Verify expected calls made to HttpClient
+        mockHttpClientFactory.Verify(_ => _.CreateClient(It.IsAny<string>()), Times.Once);
+        mockHttpMessageHandler.Protected().Verify(
+            "SendAsync",
+            Times.Exactly(3),
+            ItExpr.IsAny<HttpRequestMessage>(),
+            ItExpr.IsAny<CancellationToken>());
     }
 
     [Fact]

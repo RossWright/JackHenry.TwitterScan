@@ -31,7 +31,8 @@ public class TwitterStreamReaderService : ITwitterStreamReaderService
     readonly IHttpClientFactory _httpClientFactory;
     readonly ITweetStatisticsRepository _tweetStatRepo;
 
-    public async Task OpenStream(CancellationToken stoppingToken)
+    public Task OpenStream(CancellationToken stoppingToken) => OpenStream(stoppingToken, true);
+    internal async Task OpenStream(CancellationToken stoppingToken, bool retyClosedConnection)
     {
         // set up HTTP Client
         var httpClient = _httpClientFactory.CreateClient();
@@ -39,22 +40,31 @@ public class TwitterStreamReaderService : ITwitterStreamReaderService
                 new AuthenticationHeaderValue("Bearer", _config.AccessToken);
         httpClient.Timeout = TimeSpan.FromMilliseconds(Timeout.Infinite);
 
-        // open the stream
-        _logger.LogInformation("Tweet Receiver is opening Tweet stream.", new
+        do
         {
-            Url = _config.Url,
-            HasAccessToken = !string.IsNullOrWhiteSpace(_config.AccessToken)
-        });
-        using var stream = await httpClient.GetStreamAsync(_config.Url, stoppingToken);
-        _logger.LogInformation("Tweet Receiver Tweet stream opened.");
-        using var reader = new StreamReader(stream);
-        var jsonStream = JsonSerializer.DeserializeAsyncEnumerable<TweetDataWrapper>(stream,
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true }, stoppingToken);
+            // open the stream
+            _logger.LogInformation("Opening Tweet stream.", new
+            {
+                Url = _config.Url,
+                HasAccessToken = !string.IsNullOrWhiteSpace(_config.AccessToken)
+            });
+            using var stream = await httpClient.GetStreamAsync(_config.Url, stoppingToken);
+            _logger.LogInformation("Stream opened.");
+            using var reader = new StreamReader(stream);
+            var jsonStream = JsonSerializer.DeserializeAsyncEnumerable<TweetDataWrapper>(stream,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }, stoppingToken);
 
-        // process the stream
-        await ProcessStream(jsonStream);
-
-        _logger.LogInformation("Tweet Receiver has stopped.");
+            // process the stream
+            try
+            { 
+                await ProcessStream(jsonStream);
+                if (!retyClosedConnection) break;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInformation($"Stream interrupted with exception: {ex.Message}.");
+            }
+        } while (!stoppingToken.IsCancellationRequested);
     }
 
     internal async Task ProcessStream(IAsyncEnumerable<TweetDataWrapper?> jsonStream)
