@@ -18,7 +18,7 @@ public class NeverEndingTweetStream : Stream
             StringBuilder json = new StringBuilder();
             while (leftovers.Count + json.Length < count)
             {
-                tweetDataWrapper.Data.Entities.Hashtags[0].Tag = Guid.NewGuid().ToString();
+                tweetDataWrapper.Data!.Entities!.Hashtags![0].Tag = Guid.NewGuid().ToString();
                 json.Append(JsonSerializer.Serialize(tweetDataWrapper) + ",");
             }
             leftovers.AddRange(Encoding.UTF8.GetBytes(json.ToString()));

@@ -154,7 +154,13 @@ public class TweetStatisticsRepositoryTests
         var mockLogger = new Mock<ILogger<TweetStatisticsRepository>>();
         var statRepo = new TweetStatisticsRepository(mockLogger.Object);
 
-        statRepo.AddTweet(new Tweet());
+        statRepo.AddTweet(new Tweet
+        { 
+            Entities = new TweetEntities 
+            {
+                Hashtags = new TweetTagEntity[0] 
+            } 
+        });
         var stats = statRepo.GetTweetStats();
         Assert.Equal(1, stats.Count);
         Assert.Empty(stats.TopTenHashtags);

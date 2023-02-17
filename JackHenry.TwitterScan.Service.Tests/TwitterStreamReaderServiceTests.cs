@@ -232,7 +232,7 @@ public class TwitterStreamReaderServiceTests
     {
         Assert.Equal(testStreamData.Length, addedTweets.Count);
         for (int i = 0; i < testStreamData.Length; i++)
-            Assert.Equal(testStreamData[i].Data.Entities.Hashtags[0].Tag, addedTweets[i].Entities.Hashtags[0].Tag);
+            Assert.Equal(testStreamData[i].Data!.Entities!.Hashtags![0].Tag, addedTweets[i].Entities!.Hashtags![0].Tag);
         mockTweetStatRepository.Verify(_ => _.Start(), Times.Once());
         mockTweetStatRepository.Verify(_ => _.AddTweet(It.IsAny<Tweet>()), Times.Exactly(testStreamData.Length));
     }
