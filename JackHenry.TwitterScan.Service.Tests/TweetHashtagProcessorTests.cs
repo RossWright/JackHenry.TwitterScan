@@ -1,34 +1,33 @@
-﻿using JackHenry.TwitterScan.Service.Services;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 
 namespace JackHenry.TwitterScan.Service.Tests;
 
-public class TweetStatisticsRepositoryTests
+public class TweetHashtagProcessorTests
 {
     [Fact]
     public void HappyPath()
     {
-        var mockLogger = new Mock<ILogger<TweetStatisticsRepository>>();
-        var statRepo = new TweetStatisticsRepository(mockLogger.Object);
+        var mockLogger = new Mock<ILogger<TweetHashtagProcessor>>();
+        var tweetHashtagProcessor = new TweetHashtagProcessor(mockLogger.Object);
         
         string[] hashtags = Enumerable.Range(0, 100)
             .Select(i => $"hashtagindex{i}")
             .ToArray();
 
         DateTime start = DateTime.UtcNow;
-        statRepo.Start();
+        tweetHashtagProcessor.Start();
 
         // Add Tweets such that the number of tweets with each hashtag is equal to it's index
         for (var i = 0; i < hashtags.Length; i++)
         {
-            statRepo.AddTweet(new Tweet(
+            tweetHashtagProcessor.AddTweet(new Tweet(
                 Enumerable.Range(i, hashtags.Length - i)
                     .Select(j => hashtags[j])
                     .ToArray()));
         }
 
         var actualElapsed = (DateTime.UtcNow - start).TotalSeconds;
-        var stats = statRepo.GetTweetStats();
+        var stats = tweetHashtagProcessor.GetTweetStats();
                     
         Assert.Equal(hashtags.Length, stats.Count);
 
@@ -47,8 +46,8 @@ public class TweetStatisticsRepositoryTests
     [Fact]
     public void CheckHashtagCount()
     {
-        var mockLogger = new Mock<ILogger<TweetStatisticsRepository>>();
-        var statRepo = new TweetStatisticsRepository(mockLogger.Object);
+        var mockLogger = new Mock<ILogger<TweetHashtagProcessor>>();
+        var tweetHashtagProcessor = new TweetHashtagProcessor(mockLogger.Object);
 
         string[] hashtags = Enumerable.Range(0, 10)
             .Select(i => $"hashtagindex{i}")
@@ -61,9 +60,9 @@ public class TweetStatisticsRepositoryTests
                     .Select(j => hashtags[j])
                     .ToArray();
             tagCount += tags.Length;
-            statRepo.AddTweet(new Tweet(tags));
+            tweetHashtagProcessor.AddTweet(new Tweet(tags));
         }
-        var stats = statRepo.GetTweetStats();
+        var stats = tweetHashtagProcessor.GetTweetStats();
         Assert.Equal(tagCount, stats.TopTenHashtags.Sum(_ => _.Count));
     }
 
@@ -71,8 +70,8 @@ public class TweetStatisticsRepositoryTests
     [Fact]
     public async Task Multithread()
     {
-        var mockLogger = new Mock<ILogger<TweetStatisticsRepository>>();
-        var statRepo = new TweetStatisticsRepository(mockLogger.Object);
+        var mockLogger = new Mock<ILogger<TweetHashtagProcessor>>();
+        var tweetHashtagProcessor = new TweetHashtagProcessor(mockLogger.Object);
 
         bool stop = false;
 
@@ -91,24 +90,24 @@ public class TweetStatisticsRepositoryTests
                         .Select(j => hashtags[j])
                         .ToArray();
                 tagCount += tags.Length;
-                statRepo.AddTweet(new Tweet(tags));
+                tweetHashtagProcessor.AddTweet(new Tweet(tags));
                 addedTweats++;
             }
         });
 
-        TweetStats stats = null!;
+        TweetHashtagStatistics stats = null!;
         _ = Task.Run(() =>
         {
             while (!stop)
             {
-                stats = statRepo.GetTweetStats();
+                stats = tweetHashtagProcessor.GetTweetStats();
             }
         });
 
         await Task.Delay(5000);
         stop = true;
 
-        stats = statRepo.GetTweetStats();
+        stats = tweetHashtagProcessor.GetTweetStats();
 
         Assert.Equal(stats.Count, addedTweats);
         Assert.Equal(tagCount, stats.TopTenHashtags.Sum(_ => _.Count));
@@ -117,12 +116,12 @@ public class TweetStatisticsRepositoryTests
     [Fact]
     public void AddTweetsWithSameHashtags()
     {
-        var mockLogger = new Mock<ILogger<TweetStatisticsRepository>>();
-        var statRepo = new TweetStatisticsRepository(mockLogger.Object);
+        var mockLogger = new Mock<ILogger<TweetHashtagProcessor>>();
+        var tweetHashtagProcessor = new TweetHashtagProcessor(mockLogger.Object);
 
         for (var i = 0; i < 100; i++)
-            statRepo.AddTweet(new Tweet("thehashtag"));
-        var stats = statRepo.GetTweetStats();
+            tweetHashtagProcessor.AddTweet(new Tweet("thehashtag"));
+        var stats = tweetHashtagProcessor.GetTweetStats();
         Assert.Equal(100, stats.Count);
         Assert.Single(stats.TopTenHashtags);
         Assert.Equal("thehashtag", stats.TopTenHashtags[0].Tag);
@@ -131,11 +130,11 @@ public class TweetStatisticsRepositoryTests
     [Fact]
     public void AddNullTweet()
     {
-        var mockLogger = new Mock<ILogger<TweetStatisticsRepository>>();
-        var statRepo = new TweetStatisticsRepository(mockLogger.Object);
+        var mockLogger = new Mock<ILogger<TweetHashtagProcessor>>();
+        var tweetHashtagProcessor = new TweetHashtagProcessor(mockLogger.Object);
 
-        statRepo.AddTweet(null!);
-        var stats = statRepo.GetTweetStats();
+        tweetHashtagProcessor.AddTweet(null!);
+        var stats = tweetHashtagProcessor.GetTweetStats();
         Assert.Equal(0, stats.Count);
         Assert.Empty(stats.TopTenHashtags);
 
@@ -151,17 +150,17 @@ public class TweetStatisticsRepositoryTests
     [Fact]
     public void AddTweetWithoutHashtags()
     {
-        var mockLogger = new Mock<ILogger<TweetStatisticsRepository>>();
-        var statRepo = new TweetStatisticsRepository(mockLogger.Object);
+        var mockLogger = new Mock<ILogger<TweetHashtagProcessor>>();
+        var tweetHashtagProcessor = new TweetHashtagProcessor(mockLogger.Object);
 
-        statRepo.AddTweet(new Tweet
+        tweetHashtagProcessor.AddTweet(new Tweet
         { 
             Entities = new TweetEntities 
             {
                 Hashtags = new TweetTagEntity[0] 
             } 
         });
-        var stats = statRepo.GetTweetStats();
+        var stats = tweetHashtagProcessor.GetTweetStats();
         Assert.Equal(1, stats.Count);
         Assert.Empty(stats.TopTenHashtags);
     }

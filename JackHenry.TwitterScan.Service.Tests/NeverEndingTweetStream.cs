@@ -34,7 +34,7 @@ public class NeverEndingTweetStream : Stream
     public override bool CanSeek => false;
     public override bool CanWrite => false;
 
-    public override void Flush() => throw new NotImplementedException();
+    public override void Flush() => throw new NotSupportedException("Cannot flush this Stream.");
     public override long Length => throw new NotSupportedException("Cannot get the length of this Stream.");
     public override long Position
     {

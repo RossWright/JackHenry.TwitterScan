@@ -1,6 +1,6 @@
 ﻿namespace JackHenry.TwitterScan;
 
-public class TweetStats
+public class TweetHashtagStatistics
 {
     public double ElapsedSeconds { get; set; }
     public int Count { get; set; }

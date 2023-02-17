@@ -50,7 +50,7 @@ else
 @inject HttpClient httpClient
 @code
 {
-    TweetStats? tweetStats;
+    TweetHashtagStatistics? tweetStats;
     string? error = null;
 
     protected override async Task OnInitializedAsync()
@@ -65,7 +65,7 @@ else
         {
             try
             {
-                tweetStats = await httpClient.GetFromJsonAsync<TweetStats>($"stats");
+                tweetStats = await httpClient.GetFromJsonAsync<TweetHashtagStatistics>("hashtags");
             }
             catch (Exception ex)
             {

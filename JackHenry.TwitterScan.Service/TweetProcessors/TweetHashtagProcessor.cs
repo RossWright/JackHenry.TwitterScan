@@ -1,18 +1,16 @@
 ﻿using System.Collections.Concurrent;
 
-namespace JackHenry.TwitterScan.Service.Services;
+namespace JackHenry.TwitterScan.Service;
 
-public interface ITweetStatisticsRepository
+public interface ITweetHashtagProcessor
 {
-    void Start();
-    void AddTweet(Tweet tweet);
-    TweetStats GetTweetStats();
+    TweetHashtagStatistics GetTweetStats();
 }
 
-public class TweetStatisticsRepository : ITweetStatisticsRepository
+public class TweetHashtagProcessor : ITweetHashtagProcessor, ITweetProcessor
 {
-    public TweetStatisticsRepository(ILogger<TweetStatisticsRepository> logger) => _logger = logger;
-    readonly ILogger<TweetStatisticsRepository> _logger;
+    public TweetHashtagProcessor(ILogger<TweetHashtagProcessor> logger) => _logger = logger;
+    readonly ILogger<TweetHashtagProcessor> _logger;
 
     int _count = 0;
     ConcurrentDictionary<string, int> _hashTagCount = new ConcurrentDictionary<string, int>();
@@ -37,9 +35,9 @@ public class TweetStatisticsRepository : ITweetStatisticsRepository
         }
     }
 
-    public TweetStats GetTweetStats()
+    public TweetHashtagStatistics GetTweetStats()
     {
-        var stats = new TweetStats
+        var stats = new TweetHashtagStatistics
         {
             ElapsedSeconds = (DateTime.UtcNow - _start).TotalSeconds,
             Count = _count,
@@ -49,7 +47,7 @@ public class TweetStatisticsRepository : ITweetStatisticsRepository
                 .Select(_ => new HashtagRank { Tag = _.Key, Count = _.Value })
                 .ToArray()
         };
-        _logger.LogInformation("Tweet Stats calculated", stats);
+        _logger.LogInformation("Tweet Hashtag Stats calculated", stats);
         return stats;
     }
 }

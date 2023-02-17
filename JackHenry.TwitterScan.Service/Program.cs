@@ -1,4 +1,5 @@
-using JackHenry.TwitterScan.Service.Services;
+using JackHenry.TwitterScan.Service;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +15,10 @@ builder.Services.AddSingleton(TwitterStreamReaderServiceConfiguration);
 
 // Add services to the container.
 builder.Services.AddHttpClient();
-builder.Services.AddSingleton<ITweetStatisticsRepository, TweetStatisticsRepository>();
+
+builder.Services.AddSingleton<ITweetHashtagProcessor, TweetHashtagProcessor>();
+builder.Services.AddSingleton<ITweetProcessor>(services => (ITweetProcessor)services.GetRequiredService<ITweetHashtagProcessor>());
+
 builder.Services.AddSingleton<ITwitterStreamReaderService, TwitterStreamReaderService>();
 builder.Services.AddHostedService<TwitterStreamReaderBackgroundService>();
 

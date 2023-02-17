@@ -2,11 +2,17 @@
 using System.Net.Http.Headers;
 using System.Text.Json;
 
-namespace JackHenry.TwitterScan.Service.Services;
+namespace JackHenry.TwitterScan.Service;
 
 public interface ITwitterStreamReaderService
 {
     Task OpenStream(CancellationToken stoppingToken);
+}
+
+public interface ITweetProcessor
+{
+    void Start();
+    void AddTweet(Tweet tweet);
 }
 
 [ExcludeFromCodeCoverage]
@@ -23,13 +29,18 @@ public class TwitterStreamReaderService : ITwitterStreamReaderService
         TwitterStreamReaderServiceConfiguration config,
         ILogger<TwitterStreamReaderService> logger,
         IHttpClientFactory httpClientFactory,
-        ITweetStatisticsRepository tweetStatRepo) =>
-        (_config, _logger, _httpClientFactory, _tweetStatRepo) =
-        (config, logger, httpClientFactory, tweetStatRepo);
+        IServiceProvider serviceProvider)
+    {
+        (_config, _logger, _httpClientFactory) =
+        (config, logger, httpClientFactory);
+        _tweetProcessors = serviceProvider
+            .GetServices<ITweetProcessor>()
+            .ToArray();
+    }
     readonly TwitterStreamReaderServiceConfiguration _config;
     readonly ILogger<TwitterStreamReaderService> _logger;
     readonly IHttpClientFactory _httpClientFactory;
-    readonly ITweetStatisticsRepository _tweetStatRepo;
+    readonly ITweetProcessor[] _tweetProcessors;
 
     public Task OpenStream(CancellationToken stoppingToken) => OpenStream(stoppingToken, true);
     internal async Task OpenStream(CancellationToken stoppingToken, bool retyClosedConnection)
@@ -72,14 +83,16 @@ public class TwitterStreamReaderService : ITwitterStreamReaderService
         var count = 0;
         var rate = 1.0;
         var start = DateTime.UtcNow.Ticks;
-        _tweetStatRepo.Start();
+        foreach(var tweetProcessor in _tweetProcessors)
+            tweetProcessor.Start();
         await foreach (var dataWrapper in jsonStream)
         {
-            if (dataWrapper == null) continue;
-            _tweetStatRepo.AddTweet(dataWrapper.Data);
-            count++;
+            if (dataWrapper?.Data == null) continue;
+            foreach (var tweetProcessor in _tweetProcessors)
+                tweetProcessor.AddTweet(dataWrapper.Data);
 
             // limit rate adjustment and logging chances to about once per second
+            count++;
             if (count % (int)rate == 0)
             {
                 var secondsElapsed = (double)(DateTime.UtcNow.Ticks - start) / TimeSpan.TicksPerSecond;
