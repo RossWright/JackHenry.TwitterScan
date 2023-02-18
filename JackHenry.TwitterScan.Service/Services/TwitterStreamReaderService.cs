@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using RossWright;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Http.Headers;
 using System.Text.Json;
 
@@ -15,6 +16,7 @@ public interface ITweetProcessor
     void AddTweet(Tweet tweet);
 }
 
+[ConfigSection("TwitterConnection")]
 [ExcludeFromCodeCoverage]
 public class TwitterStreamReaderServiceConfiguration
 {
@@ -23,7 +25,8 @@ public class TwitterStreamReaderServiceConfiguration
     public int logFrequencySeconds { get; set; }
 }
 
-public class TwitterStreamReaderService : ITwitterStreamReaderService
+public class TwitterStreamReaderService : 
+    ITwitterStreamReaderService, ISingleton<ITwitterStreamReaderService>
 {
     public TwitterStreamReaderService(
         TwitterStreamReaderServiceConfiguration config,

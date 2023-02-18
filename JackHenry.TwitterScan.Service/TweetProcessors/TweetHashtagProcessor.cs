@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using RossWright;
+using System.Collections.Concurrent;
 
 namespace JackHenry.TwitterScan.Service;
 
@@ -7,7 +8,9 @@ public interface ITweetHashtagProcessor
     TweetHashtagStatistics GetTweetStats();
 }
 
-public class TweetHashtagProcessor : ITweetHashtagProcessor, ITweetProcessor
+public class TweetHashtagProcessor : 
+    ITweetHashtagProcessor, ISingleton<ITweetHashtagProcessor>,
+    ITweetProcessor, ISingleton<ITweetProcessor>
 {
     public TweetHashtagProcessor(ILogger<TweetHashtagProcessor> logger) => _logger = logger;
     readonly ILogger<TweetHashtagProcessor> _logger;
@@ -44,7 +47,7 @@ public class TweetHashtagProcessor : ITweetHashtagProcessor, ITweetProcessor
             TopTenHashtags = _hashTagCount
                 .OrderByDescending(_ => _.Value)
                 .Take(10)
-                .Select(_ => new HashtagRank { Tag = _.Key, Count = _.Value })
+                .Select(_ => new TweetHashtagRank { Tag = _.Key, Count = _.Value })
                 .ToArray()
         };
         _logger.LogInformation("Tweet Hashtag Stats calculated", stats);
