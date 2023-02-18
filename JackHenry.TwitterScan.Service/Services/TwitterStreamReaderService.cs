@@ -32,7 +32,7 @@ public class TwitterStreamReaderService :
         IServiceProvider serviceProvider)
     {
         (_config, _logger, _httpClientFactory) =
-        (config, logger, httpClientFactory);
+        ( config,  logger,  httpClientFactory);
         _tweetProcessors = serviceProvider
             .GetServices<ITweetProcessor>()
             .ToArray();

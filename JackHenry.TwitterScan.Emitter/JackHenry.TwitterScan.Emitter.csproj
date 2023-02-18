@@ -5,9 +5,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
-
+	
   <ItemGroup>
     <ProjectReference Include="..\JackHenry.TwitterScan.Common\JackHenry.TwitterScan.Common.csproj" />
+    <ProjectReference Include="..\RossWright.Tools\RossWright.Tools.csproj" />
   </ItemGroup>
 
 </Project>
