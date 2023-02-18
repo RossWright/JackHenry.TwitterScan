@@ -2,7 +2,7 @@
 
 <PageTitle>Twitter Scan</PageTitle>
 
-@if (countStats == null || hashtagStats == null)
+@if (countStats == null || hashtagStats == null || metricsStats == null)
 {
     if (error == null)
     {
@@ -17,7 +17,7 @@ else
 {
     <p>Connected to service at @httpClient.BaseAddress</p>
 
-    @if (countStats != null && hashtagStats != null)
+    @if (countStats != null && hashtagStats != null && metricsStats != null)
     {
         <p>Elapsed Seconds: @($"{countStats.ElapsedSeconds:0.0}")</p>
         <p>Tweet Count: @($"{countStats.Count:0,0}")</p>
@@ -45,6 +45,11 @@ else
                 }
             </tbody>
         </table>
+
+        <p>Total Impressions: @($"{metricsStats.ImpressionCount:0,0} ({metricsStats.ImpressionCount / (double)countStats.Count:0.00} avg.)")</p>
+        <p>Total Like: @($"{metricsStats.LikeCount:0,0} ({metricsStats.LikeCount / (double)countStats.Count:0.00} avg.)")</p>
+        <p>Total Retweet: @($"{metricsStats.RetweetCount:0,0} ({metricsStats.RetweetCount / (double)countStats.Count:0.00} avg.)")</p>
+        <p>Total Quote: @($"{metricsStats.QuoteCount:0,0} ({metricsStats.QuoteCount / (double)countStats.Count:0.00} avg.)")</p>
     }
 }
 @inject HttpClient httpClient
@@ -52,6 +57,7 @@ else
 {
     TweetCountStatistics? countStats;
     TweetHashtagStatistics? hashtagStats;
+    TweetMetricsStatistics? metricsStats;
     string? error = null;
 
     protected override async Task OnInitializedAsync()
@@ -68,6 +74,7 @@ else
             {
                 countStats = await httpClient.GetFromJsonAsync<TweetCountStatistics>("count");
                 hashtagStats = await httpClient.GetFromJsonAsync<TweetHashtagStatistics>("hashtags");
+                metricsStats = await httpClient.GetFromJsonAsync<TweetMetricsStatistics>("metrics");
             }
             catch (Exception ex)
             {

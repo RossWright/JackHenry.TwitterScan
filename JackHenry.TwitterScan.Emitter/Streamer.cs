@@ -113,7 +113,9 @@ public class Streamer
         {
             Data = new Tweet
             {
-                Entities = new TweetEntities()
+                Entities = new TweetEntities(),
+                PublicMetrics = new TweetPublicMetrics(),
+                NonPublicMetrics = new TweetNonPublicMetrics()
             }
         };
 
@@ -176,6 +178,13 @@ public class Streamer
 
             // set the hashtags into the re-used tweet object and send it.
             tweetDataWrapper.Data.Entities.Hashtags = hashtags;
+
+            // set the metrics to random values
+            tweetDataWrapper.Data.NonPublicMetrics.ImpressionCount = rand.Next(40);
+            tweetDataWrapper.Data.PublicMetrics.LikeCount = rand.Next(30);
+            tweetDataWrapper.Data.PublicMetrics.RetweetClicks = rand.Next(20);
+            tweetDataWrapper.Data.PublicMetrics.QuoteCount = rand.Next(10);
+
             yield return tweetDataWrapper;
 
             count++;
