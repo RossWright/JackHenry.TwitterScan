@@ -1,5 +1,5 @@
+global using RossWright;
 using JackHenry.TwitterScan.Service;
-using RossWright;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,7 +11,8 @@ builder.Logging.AddDebug();
 // Add services to the container.
 var assemblies = AppDomain.CurrentDomain.LoadLocalAssemblies(new string[] { "JackHenry" });
 builder.Services.AutoloadConfigObjects(builder.Configuration, assemblies);
-builder.Services.AutoloadServices(assemblies);
+builder.Services.AutoloadServices(assemblies,
+    allowMultiple: new Type[] { typeof(ITweetProcessor)});
 
 builder.Services.AddHttpClient();
 

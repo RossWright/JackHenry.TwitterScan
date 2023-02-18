@@ -1,5 +1,4 @@
-﻿// Note: These tools are copied from my personal code reuse libraries - Ross Wright
-
+﻿using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
 namespace RossWright;
@@ -26,14 +25,14 @@ public static class AutoloadServicesExtenstions
             .ToArray();
         if (verbose) Console.WriteLine($"Found {foundServices.Length} services:");
 
-        var candidates = new Dictionary<Type, (Type, Type)>();
+        var candidates = new Dictionary<Type, List<(Type, Type)>>();
 
         var entryAsmName = entryAssembly?.FullName ?? Assembly.GetEntryAssembly()?.FullName;
         if (verbose) Console.WriteLine($"Entry Asm Name: {entryAsmName}");
 
         foreach (var serviceType in foundServices)
         {
-            if (ignore?.Contains(serviceType) ?? false)
+            if (ignore?.Contains(serviceType) == true)
             {
                 if (verbose) Console.WriteLine($"\t Ignored {serviceType} as it was found in the ");
                 continue;
@@ -54,13 +53,23 @@ public static class AutoloadServicesExtenstions
                 {
                     if (verbose) Console.WriteLine($"\tERROR: Cannot register service {serviceType} as it does not implement {interfaceType}");
                 }
+                else if (allowMultiple?.Contains(interfaceType) == true)
+                {
+                    if (candidates.TryGetValue(interfaceType, out var existingCandidates))
+                    {
+                        existingCandidates.Add((serviceInterfaceType, serviceType));
+                    }
+                    else
+                    {
+                        candidates.Add(interfaceType, new List<(Type, Type)> { (serviceInterfaceType, serviceType) });
+                    }
+                }
                 else if (candidates.ContainsKey(interfaceType))
                 {
-                    if (allowMultiple?.Contains(interfaceType) ?? false) continue;
-
                     // service fight! determine who wins
-                    var existingServiceType = candidates[interfaceType].Item2;
-                    var existingImplAsmName = candidates[interfaceType].Item2.Assembly.FullName;
+                    var existingCandidate = candidates[interfaceType][0];
+                    var existingServiceType = existingCandidate.Item2;
+                    var existingImplAsmName = existingCandidate.Item2.Assembly.FullName;
                     if (existingImplAsmName == entryAsmName)
                     {
                         if (serviceType.Assembly.FullName == entryAsmName)
@@ -75,7 +84,7 @@ public static class AutoloadServicesExtenstions
                     else if (serviceType.Assembly.FullName == entryAsmName)
                     {
                         if (verbose) Console.WriteLine($"\tWARN: Skipped registering {existingServiceType} because a service, {serviceType}, was found that also implements {interfaceType}, and takes precendence since it is defined in the entry assembly.");
-                        candidates[interfaceType] = (serviceInterfaceType, serviceType);
+                        candidates[interfaceType] = new List<(Type, Type)> { (serviceInterfaceType, serviceType) };
                     }
                     else
                     {
@@ -84,39 +93,40 @@ public static class AutoloadServicesExtenstions
                 }
                 else
                 {
-                    candidates.Add(interfaceType, (serviceInterfaceType, serviceType));
+                    candidates.Add(interfaceType, new List<(Type, Type)> { (serviceInterfaceType, serviceType) });
                 }
             }
         }
 
         var singletonTypes = new Dictionary<Type, Type>();
 
-        foreach (var (interfaceType, (serviceInterfaceType, serviceType)) in candidates)
-        {
-            if (typeof(ISingleton<>).IsAssignableFrom(serviceInterfaceType.GetGenericTypeDefinition()))
+        foreach (var (interfaceType, registrations) in candidates)
+            foreach( var (serviceInterfaceType, serviceType) in registrations)
             {
-                if (singletonTypes.ContainsKey(serviceType))
+                if (typeof(ISingleton<>).IsAssignableFrom(serviceInterfaceType.GetGenericTypeDefinition()))
                 {
-                    services.AddSingleton(interfaceType, sp => sp.GetRequiredService(singletonTypes[serviceType]));
+                    if (singletonTypes.ContainsKey(serviceType))
+                    {
+                        services.AddSingleton(interfaceType, sp => sp.GetRequiredService(singletonTypes[serviceType]));
+                    }
+                    else
+                    {
+                        singletonTypes.Add(serviceType, interfaceType);
+                        services.AddSingleton(interfaceType, serviceType);
+                    }
+                    if (verbose) Console.WriteLine($"\tRegistered singleton service {serviceType} for {interfaceType}");
                 }
-                else
+                else if (typeof(IScopedService<>).IsAssignableFrom(serviceInterfaceType.GetGenericTypeDefinition()))
                 {
-                    singletonTypes.Add(serviceType, interfaceType);
-                    services.AddSingleton(interfaceType, serviceType);
+                    services.AddScoped(interfaceType, serviceType);
+                    if (verbose) Console.WriteLine($"\tRegistered scoped service {serviceType} for {interfaceType}");
                 }
-                if (verbose) Console.WriteLine($"\tRegistered singleton service {serviceType} for {interfaceType}");
+                else //if (typeof(ITransientService<>).IsAssignableFrom(serviceInterfaceType.GetGenericTypeDefinition()))
+                {
+                    services.AddTransient(interfaceType, serviceType);
+                    if (verbose) Console.WriteLine($"\tRegistered transient service {serviceType} for {interfaceType}");
+                }
             }
-            else if (typeof(IScopedService<>).IsAssignableFrom(serviceInterfaceType.GetGenericTypeDefinition()))
-            {
-                services.AddScoped(interfaceType, serviceType);
-                if (verbose) Console.WriteLine($"\tRegistered scoped service {serviceType} for {interfaceType}");
-            }
-            else //if (typeof(ITransientService<>).IsAssignableFrom(serviceInterfaceType.GetGenericTypeDefinition()))
-            {
-                services.AddTransient(interfaceType, serviceType);
-                if (verbose) Console.WriteLine($"\tRegistered transient service {serviceType} for {interfaceType}");
-            }
-        }
     }
 }
 public interface ISingleton<T> { }

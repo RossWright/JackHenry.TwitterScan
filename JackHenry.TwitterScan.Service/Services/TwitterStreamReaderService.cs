@@ -1,6 +1,4 @@
-﻿using RossWright;
-using System.Diagnostics.CodeAnalysis;
-using System.Net.Http.Headers;
+﻿using System.Net.Http.Headers;
 using System.Text.Json;
 
 namespace JackHenry.TwitterScan.Service;
@@ -17,7 +15,6 @@ public interface ITweetProcessor
 }
 
 [ConfigSection("TwitterConnection")]
-[ExcludeFromCodeCoverage]
 public class TwitterStreamReaderServiceConfiguration
 {
     public string Url { get; set; } = null!;

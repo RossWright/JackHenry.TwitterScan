@@ -27,13 +27,7 @@ public class TweetHashtagProcessorTests
         }
 
         var actualElapsed = (DateTime.UtcNow - start).TotalSeconds;
-        var stats = tweetHashtagProcessor.GetTweetStats();
-                    
-        Assert.Equal(hashtags.Length, stats.Count);
-
-        Assert.InRange(actualElapsed, 
-            stats.ElapsedSeconds-0.5, 
-            stats.ElapsedSeconds + 0.5);
+        var stats = tweetHashtagProcessor.GetHashtagStats();
 
         // Verify the Top Ten Hashtags are right
         for (var i = 0; i < stats.TopTenHashtags.Length; i++)
@@ -62,7 +56,7 @@ public class TweetHashtagProcessorTests
             tagCount += tags.Length;
             tweetHashtagProcessor.AddTweet(new Tweet(tags));
         }
-        var stats = tweetHashtagProcessor.GetTweetStats();
+        var stats = tweetHashtagProcessor.GetHashtagStats();
         Assert.Equal(tagCount, stats.TopTenHashtags.Sum(_ => _.Count));
     }
 
@@ -73,43 +67,43 @@ public class TweetHashtagProcessorTests
         var mockLogger = new Mock<ILogger<TweetHashtagProcessor>>();
         var tweetHashtagProcessor = new TweetHashtagProcessor(mockLogger.Object);
 
-        bool stop = false;
+        long stopFlag = 0;
 
         string[] hashtags = Enumerable.Range(0, 10)
             .Select(i => $"hashtagindex{i}")
             .ToArray();
 
         var rand = new Random();
-        int addedTweats = 0;
         int tagCount = 0;
-        _ = Task.Run(() =>
+        string[]? tags;
+        var feedTask = Task.Run(() =>
         {
-            while (!stop)            
+            while (Interlocked.Read(ref stopFlag) == 0)
             {
-                var tags = Enumerable.Range(0, rand.Next(10))
+                tags = Enumerable.Range(0, rand.Next(10))
                         .Select(j => hashtags[j])
                         .ToArray();
-                tagCount += tags.Length;
                 tweetHashtagProcessor.AddTweet(new Tweet(tags));
-                addedTweats++;
+                tagCount += tags.Length;
             }
         });
 
         TweetHashtagStatistics stats = null!;
-        _ = Task.Run(() =>
+        var readTask = Task.Run(() =>
         {
-            while (!stop)
+            while (Interlocked.Read(ref stopFlag) == 0)
             {
-                stats = tweetHashtagProcessor.GetTweetStats();
+                stats = tweetHashtagProcessor.GetHashtagStats();
             }
         });
 
-        await Task.Delay(5000);
-        stop = true;
+        await Task.Delay(1000);
+        Interlocked.Increment(ref stopFlag);
+        await readTask;
+        await feedTask;
 
-        stats = tweetHashtagProcessor.GetTweetStats();
+        stats = tweetHashtagProcessor.GetHashtagStats();
 
-        Assert.Equal(stats.Count, addedTweats);
         Assert.Equal(tagCount, stats.TopTenHashtags.Sum(_ => _.Count));
     }
 
@@ -121,8 +115,8 @@ public class TweetHashtagProcessorTests
 
         for (var i = 0; i < 100; i++)
             tweetHashtagProcessor.AddTweet(new Tweet("thehashtag"));
-        var stats = tweetHashtagProcessor.GetTweetStats();
-        Assert.Equal(100, stats.Count);
+        var stats = tweetHashtagProcessor.GetHashtagStats();
+
         Assert.Single(stats.TopTenHashtags);
         Assert.Equal("thehashtag", stats.TopTenHashtags[0].Tag);
     }
@@ -134,8 +128,8 @@ public class TweetHashtagProcessorTests
         var tweetHashtagProcessor = new TweetHashtagProcessor(mockLogger.Object);
 
         tweetHashtagProcessor.AddTweet(null!);
-        var stats = tweetHashtagProcessor.GetTweetStats();
-        Assert.Equal(0, stats.Count);
+        var stats = tweetHashtagProcessor.GetHashtagStats();
+ 
         Assert.Empty(stats.TopTenHashtags);
 
         mockLogger.Verify(_ => _.Log(
@@ -160,8 +154,7 @@ public class TweetHashtagProcessorTests
                 Hashtags = new TweetTagEntity[0] 
             } 
         });
-        var stats = tweetHashtagProcessor.GetTweetStats();
-        Assert.Equal(1, stats.Count);
+        var stats = tweetHashtagProcessor.GetHashtagStats();
         Assert.Empty(stats.TopTenHashtags);
     }
 }

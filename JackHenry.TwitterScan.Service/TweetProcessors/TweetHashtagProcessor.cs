@@ -5,7 +5,7 @@ namespace JackHenry.TwitterScan.Service;
 
 public interface ITweetHashtagProcessor
 {
-    TweetHashtagStatistics GetTweetStats();
+    TweetHashtagStatistics GetHashtagStats();
 }
 
 public class TweetHashtagProcessor : 
@@ -15,20 +15,17 @@ public class TweetHashtagProcessor :
     public TweetHashtagProcessor(ILogger<TweetHashtagProcessor> logger) => _logger = logger;
     readonly ILogger<TweetHashtagProcessor> _logger;
 
-    int _count = 0;
     ConcurrentDictionary<string, int> _hashTagCount = new ConcurrentDictionary<string, int>();
 
-    public void Start() => _start = DateTime.UtcNow;
-    DateTime _start;
+    public void Start() { }
 
     public void AddTweet(Tweet tweet)
     {
         if (tweet == null)
         {
-            _logger.LogWarning("Attempted to add null tweet to Tweet Repository");
+            _logger.LogWarning("Attempted to add null tweet");
             return;
         }
-        Interlocked.Increment(ref _count);
         if (tweet.Hashtags?.Any() == true)
         {
             foreach (var hashtag in tweet.Hashtags)
@@ -38,13 +35,12 @@ public class TweetHashtagProcessor :
         }
     }
 
-    public TweetHashtagStatistics GetTweetStats()
+    public TweetHashtagStatistics GetHashtagStats()
     {
         var stats = new TweetHashtagStatistics
         {
-            ElapsedSeconds = (DateTime.UtcNow - _start).TotalSeconds,
-            Count = _count,
             TopTenHashtags = _hashTagCount
+                .ToArray() //On concurrent dictionary this is thread-safe
                 .OrderByDescending(_ => _.Value)
                 .Take(10)
                 .Select(_ => new TweetHashtagRank { Tag = _.Key, Count = _.Value })

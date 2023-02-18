@@ -1,8 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿namespace JackHenry.TwitterScan.Service;
 
-namespace JackHenry.TwitterScan.Service;
-
-[ExcludeFromCodeCoverage] // Testing the plumbing of ASP.NET has diminishing returns
 public class TwitterStreamReaderBackgroundService : BackgroundService
 {
     public TwitterStreamReaderBackgroundService(IServiceProvider serviceProvider,

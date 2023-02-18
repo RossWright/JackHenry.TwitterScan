@@ -1,6 +1,4 @@
-﻿// Note: These tools are copied from my personal code reuse libraries - Ross Wright
-
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
@@ -75,6 +73,7 @@ public sealed class ConfigSectionAttribute : Attribute
     public string SectionTitle { get; private set; }
     public Type? RegisterAs { get; private set; }
 }
+
 
 /// <summary>
 /// Specifies this configuration section object should be validated after binding on autoload

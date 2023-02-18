@@ -1,42 +1,57 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+	<PropertyGroup>
+		<TargetFramework>net7.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
 
-    <IsPackable>false</IsPackable>
-  </PropertyGroup>
+		<IsPackable>false</IsPackable>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.3.2" />
-    <PackageReference Include="Moq" Version="4.18.4" />
-    <PackageReference Include="System.Linq.Async" Version="6.0.1" />
-    <PackageReference Include="xunit" Version="2.4.2" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="coverlet.collector" Version="3.1.2">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.3.2" />
+		<PackageReference Include="Moq" Version="4.18.4" />
+		<PackageReference Include="System.Linq.Async" Version="6.0.1" />
+		<PackageReference Include="xunit" Version="2.4.2" />
+		<PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+		<PackageReference Include="coverlet.collector" Version="3.1.2">
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\JackHenry.TwitterScan.Common\JackHenry.TwitterScan.Common.csproj" />
-    <ProjectReference Include="..\JackHenry.TwitterScan.Service\JackHenry.TwitterScan.Service.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\JackHenry.TwitterScan.Common\JackHenry.TwitterScan.Common.csproj" />
+		<ProjectReference Include="..\JackHenry.TwitterScan.Service\JackHenry.TwitterScan.Service.csproj" />
+	</ItemGroup>
 
 	<PropertyGroup Label="FineCodeCoverage">
-		<Enabled>True</Enabled>
-		<Exclude></Exclude>
-		<Include>[*]*</Include>
+		<Enabled>
+			True
+		</Enabled>
+		<Exclude>
+			[JackHenry.TwitterScan.Common]*
+			[*]RossWright.*
+			[*]*.TwitterStreamReaderBackgroundService
+		</Exclude>
+		<Include>
+			[*]*
+		</Include>
 		<ExcludeByFile>
-			**/Migrations/*
+			**/Controllers/*.cs
 		</ExcludeByFile>
-		<ExcludeByAttribute>ExcludeFromCodeCoverage</ExcludeByAttribute>
-		<IncludeTestAssembly>False</IncludeTestAssembly>
+		<ExcludeByAttribute>
+			ExcludeFromCodeCoverage
+			ConfigSection
+		</ExcludeByAttribute>
+		<IncludeTestAssembly>
+			False
+		</IncludeTestAssembly>
+		<ModulePathsExclude>
+		</ModulePathsExclude>
 	</PropertyGroup>
 
 </Project>

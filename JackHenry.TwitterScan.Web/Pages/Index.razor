@@ -2,7 +2,7 @@
 
 <PageTitle>Twitter Scan</PageTitle>
 
-@if (tweetStats == null)
+@if (countStats == null || hashtagStats == null)
 {
     if (error == null)
     {
@@ -17,11 +17,11 @@ else
 {
     <p>Connected to service at @httpClient.BaseAddress</p>
 
-    @if (tweetStats != null)
+    @if (countStats != null && hashtagStats != null)
     {
-        <p>Elapsed Seconds: @($"{tweetStats.ElapsedSeconds:0.0}")</p>
-        <p>Tweet Count: @($"{tweetStats.Count:0,0}")</p>
-        <p>Tweets Per Second: @($"{tweetStats.Count / tweetStats.ElapsedSeconds:0,0}")</p>
+        <p>Elapsed Seconds: @($"{countStats.ElapsedSeconds:0.0}")</p>
+        <p>Tweet Count: @($"{countStats.Count:0,0}")</p>
+        <p>Tweets Per Second: @($"{countStats.Count / countStats.ElapsedSeconds:0,0}")</p>
 
         <table>
             <thead>
@@ -34,12 +34,12 @@ else
             <tbody>
                 @{
                     var i = 1;
-                    foreach(var hashtag in tweetStats.TopTenHashtags)
+                    foreach (var hashtag in hashtagStats.TopTenHashtags)
                     {
                         <tr>
                             <td>@(i++)</td>
                             <td>#@hashtag.Tag</td>
-                            <td>@($"{hashtag.Count:0,0} ({hashtag.Count / (double)tweetStats.Count:0.00}%)")</td>
+                            <td>@($"{hashtag.Count:0,0} ({hashtag.Count / (double)countStats.Count:0.00}%)")</td>
                         </tr>                
                     }
                 }
@@ -50,7 +50,8 @@ else
 @inject HttpClient httpClient
 @code
 {
-    TweetHashtagStatistics? tweetStats;
+    TweetCountStatistics? countStats;
+    TweetHashtagStatistics? hashtagStats;
     string? error = null;
 
     protected override async Task OnInitializedAsync()
@@ -65,7 +66,8 @@ else
         {
             try
             {
-                tweetStats = await httpClient.GetFromJsonAsync<TweetHashtagStatistics>("hashtags");
+                countStats = await httpClient.GetFromJsonAsync<TweetCountStatistics>("count");
+                hashtagStats = await httpClient.GetFromJsonAsync<TweetHashtagStatistics>("hashtags");
             }
             catch (Exception ex)
             {

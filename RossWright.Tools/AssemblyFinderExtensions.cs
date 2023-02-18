@@ -1,6 +1,4 @@
-﻿// Note: These tools are copied from my personal code reuse libraries - Ross Wright
-
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace RossWright;
 
