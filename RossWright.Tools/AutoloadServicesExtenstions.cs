@@ -99,15 +99,22 @@ public static class AutoloadServicesExtenstions
         }
 
         var singletonTypes = new Dictionary<Type, Type>();
+        var secondarySingletons = new Dictionary<Type, Type>();
 
         foreach (var (interfaceType, registrations) in candidates)
             foreach( var (serviceInterfaceType, serviceType) in registrations)
             {
                 if (typeof(ISingleton<>).IsAssignableFrom(serviceInterfaceType.GetGenericTypeDefinition()))
                 {
-                    if (singletonTypes.ContainsKey(serviceType))
+                    // If it's a multiple service singleton registration, don't register it primarily on this interface
+                    if (allowMultiple?.Contains(interfaceType) == true)
                     {
-                        services.AddSingleton(interfaceType, sp => sp.GetRequiredService(singletonTypes[serviceType]));
+                        secondarySingletons.Add(serviceType, interfaceType);
+                    }
+                    else if (singletonTypes.ContainsKey(serviceType))
+                    {
+                        services.AddSingleton(interfaceType, 
+                            sp => sp.GetRequiredService(singletonTypes[serviceType]));
                     }
                     else
                     {
@@ -127,6 +134,18 @@ public static class AutoloadServicesExtenstions
                     if (verbose) Console.WriteLine($"\tRegistered transient service {serviceType} for {interfaceType}");
                 }
             }
+        foreach(var (serviceType, interfaceType) in secondarySingletons)
+        {
+            if (singletonTypes.ContainsKey(serviceType))
+            {
+                services.AddSingleton(interfaceType,
+                    sp => sp.GetRequiredService(singletonTypes[serviceType]));
+            }
+            else
+            {
+                services.AddSingleton(interfaceType, serviceType);
+            }
+        }
     }
 }
 public interface ISingleton<T> { }
