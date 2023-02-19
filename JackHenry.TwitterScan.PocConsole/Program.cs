@@ -36,7 +36,9 @@ if (rate == -1)
 else
 {
     configuration.Bind("Emitter", siteCfg);
-    requestUri = $"{siteCfg.Url}?rate={rate}";
+    requestUri = siteCfg.Url.Contains('?')
+        ? $"{siteCfg.Url}&rate={rate}"
+        : $"{siteCfg.Url}?rate={rate}";
 }
 
 // output the header and prepare variables for loop

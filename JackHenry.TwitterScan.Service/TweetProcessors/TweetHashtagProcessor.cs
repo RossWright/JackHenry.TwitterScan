@@ -17,6 +17,9 @@ public class TweetHashtagProcessor :
 
     ConcurrentDictionary<string, int> _hashTagCount = new ConcurrentDictionary<string, int>();
 
+    public IEnumerable<string>? RequiredFields =>
+        new string[] { "entities" };
+
     public void Start() { }
 
     public void AddTweet(Tweet tweet)

@@ -40,6 +40,16 @@ public class TweetMetricsProcessorTests
     }
 
     [Fact]
+    public void VerifyRequireFields()
+    {
+        var mockLogger = new Mock<ILogger<TweetMetricsProcessor>>();
+        var tweetCountProcessor = new TweetMetricsProcessor(mockLogger.Object);
+        Assert.NotNull(tweetCountProcessor.RequiredFields!);
+        Assert.Contains("public_metrics", tweetCountProcessor.RequiredFields!);
+        Assert.Contains("non_public_metrics", tweetCountProcessor.RequiredFields!);
+    }
+
+    [Fact]
     public async Task Multithread()
     {
         var mockLogger = new Mock<ILogger<TweetMetricsProcessor>>();

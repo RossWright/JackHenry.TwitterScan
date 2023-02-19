@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Headers;
+﻿using Microsoft.IdentityModel.Tokens;
+using System.Net.Http.Headers;
 using System.Text.Json;
 
 namespace JackHenry.TwitterScan.Service;
@@ -10,6 +11,7 @@ public interface ITwitterStreamReaderService
 
 public interface ITweetProcessor
 {
+    IEnumerable<string>? RequiredFields { get; }
     void Start();
     void AddTweet(Tweet tweet);
 }
@@ -51,15 +53,27 @@ public class TwitterStreamReaderService :
                 new AuthenticationHeaderValue("Bearer", _config.AccessToken);
         httpClient.Timeout = TimeSpan.FromMilliseconds(Timeout.Infinite);
 
+        // Collect needed tweet fields paramters from processors and prep request uri
+        var fields = string.Join(",", _tweetProcessors
+            .SelectMany(_ => _.RequiredFields?.Select(f => f.ToLower()) ?? Enumerable.Empty<string>())
+            .Distinct());
+        string url = _config.Url;
+        if (fields.IsNullOrEmpty())
+            url = _config.Url;
+        else if (_config.Url.Contains('?'))
+            url = $"{_config.Url}&tweet.fields={fields}";
+        else 
+            url = $"{_config.Url}?tweet.fields={fields}";
+
         do
         {
             // open the stream
             _logger.LogInformation("Opening Tweet stream.", new
             {
-                Url = _config.Url,
+                Url = url,
                 HasAccessToken = !string.IsNullOrWhiteSpace(_config.AccessToken)
             });
-            using var stream = await httpClient.GetStreamAsync(_config.Url, stoppingToken);
+            using var stream = await httpClient.GetStreamAsync(url, stoppingToken);
             _logger.LogInformation("Stream opened.");
             using var reader = new StreamReader(stream);
             var jsonStream = JsonSerializer.DeserializeAsyncEnumerable<TweetDataWrapper>(stream,

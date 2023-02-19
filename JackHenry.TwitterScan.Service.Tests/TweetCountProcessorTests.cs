@@ -29,6 +29,14 @@ public class TweetCountProcessorTests
     }
 
     [Fact]
+    public void VerifyRequireFields()
+    {
+        var mockLogger = new Mock<ILogger<TweetCountProcessor>>();
+        var tweetCountProcessor = new TweetCountProcessor(mockLogger.Object);
+        Assert.Null(tweetCountProcessor.RequiredFields);
+    }
+
+    [Fact]
     public async Task Multithread()
     {
         var mockLogger = new Mock<ILogger<TweetCountProcessor>>();

@@ -13,6 +13,8 @@ public class TweetCountProcessor :
     readonly ILogger<TweetCountProcessor> _logger;
 
     long _count = 0;
+
+    public IEnumerable<string>? RequiredFields => null;
     public void Start() => _start = DateTime.UtcNow;
     DateTime _start;
 

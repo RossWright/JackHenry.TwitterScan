@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq.Protected;
 using System.Net;
+using System.Net.Http;
 
 namespace JackHenry.TwitterScan.Service.Tests;
 
@@ -82,6 +83,106 @@ public class TwitterStreamReaderServiceTests
         var exception = await Assert.ThrowsAsync<HttpRequestException>(() =>
             svc.OpenStream(token, retyClosedConnection: false));
         Assert.Equal(HttpStatusCode.Unauthorized, exception.StatusCode);
+    }
+
+    [Fact(Timeout = 5000)]
+    public void OpenStream_WithRequiredField()
+    {
+        var mockLogger = new Mock<ILogger<TwitterStreamReaderService>>();
+
+        SetupMockHttp(new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent(JsonSerializer.Serialize(testStreamData))
+        });
+
+        SetupMockTweetProcessor("reqfield");
+
+        // Intantiate Service
+        var svc = new TwitterStreamReaderService(cfg,
+            mockLogger.Object,
+            mockHttpClientFactory.Object,
+            mockServiceProvider.Object);
+
+        // Conduct Test
+        var cancelSource = new CancellationTokenSource();
+        var opTask = svc.OpenStream(cancelSource.Token, retyClosedConnection: false);
+
+        // Verify expected calls made to HttpClient
+        mockHttpMessageHandler.Protected().Verify(
+            "SendAsync",
+            Times.Exactly(1),
+            ItExpr.Is<HttpRequestMessage>(r => 
+                r.Method == HttpMethod.Get &&
+                r.RequestUri!.ToString() == $"{cfg.Url}?tweet.fields=reqfield"),
+            ItExpr.IsAny<CancellationToken>());
+    }
+
+    [Fact(Timeout = 5000)]
+    public void OpenStream_WithRequiredFields()
+    {
+        var mockLogger = new Mock<ILogger<TwitterStreamReaderService>>();
+
+        SetupMockHttp(new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent(JsonSerializer.Serialize(testStreamData))
+        });
+
+        SetupMockTweetProcessor("reqfield1", "reqfield2");
+
+        // Intantiate Service
+        var svc = new TwitterStreamReaderService(cfg,
+            mockLogger.Object,
+            mockHttpClientFactory.Object,
+            mockServiceProvider.Object);
+
+        // Conduct Test
+        var cancelSource = new CancellationTokenSource();
+        var opTask = svc.OpenStream(cancelSource.Token, retyClosedConnection: false);
+
+        // Verify expected calls made to HttpClient
+        mockHttpMessageHandler.Protected().Verify(
+            "SendAsync",
+            Times.Exactly(1),
+            ItExpr.Is<HttpRequestMessage>(r =>
+                r.Method == HttpMethod.Get &&
+                r.RequestUri!.ToString() == $"{cfg.Url}?tweet.fields=reqfield1,reqfield2"),
+            ItExpr.IsAny<CancellationToken>());
+    }
+
+    [Fact(Timeout = 5000)]
+    public void OpenStream_WithRequiredFieldsAndConfigQueryParam()
+    {
+        cfg.Url = "https://another.com/?test=works";
+        var mockLogger = new Mock<ILogger<TwitterStreamReaderService>>();
+
+        SetupMockHttp(new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent(JsonSerializer.Serialize(testStreamData))
+        });
+
+        SetupMockTweetProcessor("reqfield1", "reqfield2");
+
+        // Intantiate Service
+        var svc = new TwitterStreamReaderService(cfg,
+            mockLogger.Object,
+            mockHttpClientFactory.Object,
+            mockServiceProvider.Object);
+
+        // Conduct Test
+        var cancelSource = new CancellationTokenSource();
+        var opTask = svc.OpenStream(cancelSource.Token, retyClosedConnection: false);
+
+        // Verify expected calls made to HttpClient
+        mockHttpMessageHandler.Protected().Verify(
+            "SendAsync",
+            Times.Exactly(1),
+            ItExpr.Is<HttpRequestMessage>(r =>
+                r.Method == HttpMethod.Get &&
+                r.RequestUri!.ToString() == $"{cfg.Url}&tweet.fields=reqfield1,reqfield2"),
+            ItExpr.IsAny<CancellationToken>());
     }
 
     [Fact(Timeout=5000)]
@@ -185,7 +286,7 @@ public class TwitterStreamReaderServiceTests
 
         await svc.ProcessStream(SlowRollAsyncStream());
 
-        VerifyTweetProcessor();
+        VerifyTweetProcessor(isOpenStreamTest: false);
 
         // Establish some basic bounds for tweet logging
         //    somewhere between the stream rate
@@ -206,7 +307,7 @@ public class TwitterStreamReaderServiceTests
     TwitterStreamReaderServiceConfiguration cfg = new TwitterStreamReaderServiceConfiguration
     {
         logFrequencySeconds = 1,
-        Url = "http://TestServer.com/NotCalled",
+        Url = "http://testserver.com/NotCalled",
         AccessToken = "The Access Token"
     };
 
@@ -216,11 +317,18 @@ public class TwitterStreamReaderServiceTests
             .Select(_ => new TweetDataWrapper(Guid.NewGuid().ToString()))
             .ToArray();
 
-    void SetupMockTweetProcessor()
+    void SetupMockTweetProcessor(params string[] requiredFields)
     {
         mockTweetProcessor = new Mock<ITweetProcessor>(MockBehavior.Strict);
-        mockTweetProcessor.Setup(_ => _.Start()).Verifiable();
-        mockTweetProcessor.Setup(_ => _.AddTweet(Capture.In(addedTweets))).Verifiable();
+        mockTweetProcessor.Setup(_ => _.RequiredFields)
+            .Returns(() => requiredFields)
+            .Verifiable();
+        mockTweetProcessor
+            .Setup(_ => _.Start())
+            .Verifiable();
+        mockTweetProcessor
+            .Setup(_ => _.AddTweet(Capture.In(addedTweets)))
+            .Verifiable();
 
         mockServiceProvider = new Mock<IServiceProvider>();
         mockServiceProvider.Setup(_ => _.GetService(typeof(IEnumerable<ITweetProcessor>)))
@@ -229,11 +337,12 @@ public class TwitterStreamReaderServiceTests
     Mock<ITweetProcessor> mockTweetProcessor = null!;
     Mock<IServiceProvider> mockServiceProvider = null!;
     List<Tweet> addedTweets = new List<Tweet>();
-    void VerifyTweetProcessor()
+    void VerifyTweetProcessor(bool isOpenStreamTest = true)
     {
         Assert.Equal(testStreamData.Length, addedTweets.Count);
         for (int i = 0; i < testStreamData.Length; i++)
             Assert.Equal(testStreamData[i].Data!.Entities!.Hashtags![0].Tag, addedTweets[i].Entities!.Hashtags![0].Tag);
+        mockTweetProcessor.Verify(_ => _.RequiredFields, isOpenStreamTest ? Times.Once() : Times.Never());
         mockTweetProcessor.Verify(_ => _.Start(), Times.Once());
         mockTweetProcessor.Verify(_ => _.AddTweet(It.IsAny<Tweet>()), Times.Exactly(testStreamData.Length));
     }

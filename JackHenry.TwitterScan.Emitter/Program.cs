@@ -2,6 +2,7 @@ using JackHenry.TwitterScan;
 using Microsoft.AspNetCore.Http.Json;
 using RossWright;
 using System.Text.Json.Serialization;
+using FromQuery = Microsoft.AspNetCore.Mvc.FromQueryAttribute;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,7 +17,10 @@ var app = builder.Build();
 app.UseHttpsRedirection();
 
 var streamer = new Streamer();
-app.MapGet("/stream", (int? rate) => streamer.Stream(rate));
+app.MapGet("/stream", (
+    int? rate,
+    [FromQuery(Name = "tweet.fields")] string? tweetFieldsStr) 
+    => streamer.Stream(rate, tweetFieldsStr));
 
 app.MapGet("/issueJwt", () => authCfg.MakeAccessToken());
 

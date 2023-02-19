@@ -1,4 +1,7 @@
-﻿namespace JackHenry.TwitterScan;
+﻿using Microsoft.AspNetCore.Mvc;
+using System.Web;
+
+namespace JackHenry.TwitterScan;
 
 public class Streamer
 {
@@ -106,7 +109,7 @@ public class Streamer
     readonly TweetTagEntity[][] stackedTestTagSets = null!;
     readonly int[] tagSetTiming = null!;
 
-    public async IAsyncEnumerable<TweetDataWrapper> Stream(int? rate)
+    public async IAsyncEnumerable<TweetDataWrapper> Stream(int? rate, string? tweetFieldsStr)
     {
         // Make one set of tweet objects that will be re-used within the loop
         var tweetDataWrapper = new TweetDataWrapper
@@ -133,6 +136,11 @@ public class Streamer
         // If a rate query param was provided, use it. Otherwise default to 57 tweets per second
         var maxTweetsPerSecond = rate ?? TimeSpan.TicksPerSecond;
         var ticksPerTweet = TimeSpan.TicksPerSecond / maxTweetsPerSecond;
+
+        var tweetFields = tweetFieldsStr?.Split(',');
+        bool includeEntities = tweetFields?.Contains("entities") ?? false;
+        bool includePublicMetrics = tweetFields?.Contains("public_metrics") ?? false;
+        bool includeNonPublicMetrics = tweetFields?.Contains("non_public_metrics") ?? false;
 
         // Start with the first stacked Test Tag Set
         var setIndex = 0;
@@ -167,23 +175,33 @@ public class Streamer
                     nextSetChange = tagSetTiming![setIndex] * TimeSpan.TicksPerSecond;
             }
 
-            // Randomly choose between a number of hashtags (use the pre-allocated arrays declared above)
-            var hashtags = preAllocatedHashtagArrays[rand.Next(6)];
-
-            // fill the hashtag array with random hash tags
-            for (var i = 0; i < hashtags.Length; i++)
+            if (includeEntities)
             {
-                hashtags[i] = stackedTestTags[rand.Next(stackedTestTags.Length)];
+                // Randomly choose between a number of hashtags (use the pre-allocated arrays declared above)
+                var hashtags = preAllocatedHashtagArrays[rand.Next(6)];
+
+                // fill the hashtag array with random hash tags
+                for (var i = 0; i < hashtags.Length; i++)
+                {
+                    hashtags[i] = stackedTestTags[rand.Next(stackedTestTags.Length)];
+                }
+
+                // set the hashtags into the re-used tweet object and send it.
+                tweetDataWrapper.Data.Entities.Hashtags = hashtags;
             }
 
-            // set the hashtags into the re-used tweet object and send it.
-            tweetDataWrapper.Data.Entities.Hashtags = hashtags;
-
             // set the metrics to random values
-            tweetDataWrapper.Data.NonPublicMetrics.ImpressionCount = rand.Next(40);
-            tweetDataWrapper.Data.PublicMetrics.LikeCount = rand.Next(30);
-            tweetDataWrapper.Data.PublicMetrics.RetweetClicks = rand.Next(20);
-            tweetDataWrapper.Data.PublicMetrics.QuoteCount = rand.Next(10);
+            if (includeNonPublicMetrics)
+            {
+                tweetDataWrapper.Data.NonPublicMetrics.ImpressionCount = rand.Next(40);
+            }
+
+            if (includePublicMetrics)
+            {
+                tweetDataWrapper.Data.PublicMetrics.LikeCount = rand.Next(30);
+                tweetDataWrapper.Data.PublicMetrics.RetweetClicks = rand.Next(20);
+                tweetDataWrapper.Data.PublicMetrics.QuoteCount = rand.Next(10);
+            }
 
             yield return tweetDataWrapper;
 

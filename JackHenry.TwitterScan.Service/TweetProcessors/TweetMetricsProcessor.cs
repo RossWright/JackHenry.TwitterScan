@@ -17,6 +17,9 @@ public class TweetMetricsProcessor :
     long _quoteCount = 0;
     long _likeCount = 0;
 
+    public IEnumerable<string>? RequiredFields => 
+        new string[] { "public_metrics", "non_public_metrics" };
+
     public void Start() { }
 
     public void AddTweet(Tweet tweet)

@@ -38,6 +38,15 @@ public class TweetHashtagProcessorTests
     }
 
     [Fact]
+    public void VerifyRequireFields()
+    {
+        var mockLogger = new Mock<ILogger<TweetHashtagProcessor>>();
+        var tweetCountProcessor = new TweetHashtagProcessor(mockLogger.Object);
+        Assert.NotNull(tweetCountProcessor.RequiredFields!);
+        Assert.Contains("entities", tweetCountProcessor.RequiredFields!);
+    }
+
+    [Fact]
     public void CheckHashtagCount()
     {
         var mockLogger = new Mock<ILogger<TweetHashtagProcessor>>();
